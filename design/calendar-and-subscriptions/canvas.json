@@ -1,0 +1,16 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Calendar · phone", "x": 0, "y": 0, "w": 390, "h": 920 },
+    { "file": "CalendarDesktop.dc.html", "title": "Calendar · desktop", "x": 480, "y": 0, "w": 1440, "h": 900 },
+    { "file": "SubscriptionsPhone.dc.html", "title": "Plan with Subscriptions · phone", "x": 0, "y": 1080, "w": 390, "h": 920 },
+    { "file": "SubscriptionsDesktop.dc.html", "title": "Plan with Subscriptions · desktop", "x": 480, "y": 1080, "w": 1440, "h": 900 },
+    { "file": "SubscriptionSheet.dc.html", "title": "Edit subscription · sheet", "x": 0, "y": 2320, "w": 390, "h": 860 },
+    { "file": "SubscriptionsCard.dc.html", "title": "This month · desktop side card", "x": 480, "y": 2320, "w": 483, "h": 300 }
+  ],
+  "annotations": [
+    { "id": "cal-why", "x": 2000, "y": 0, "w": 300, "text": "CALENDAR\n\nA fourth tab. Every payment lands on the day it is due, or was paid. Phone: dots in the grid (category colour = due, green = paid, red = overdue), tap a day to list it, plus the next 7 days. Desktop: the day cells are big enough to carry name + amount chips, and the side column shows the selected day, month totals, and the next 7 days.\n\nRows reuse the This month bill row, so ticking works here too. The trailing days of October show next month's bills faded." },
+    { "id": "subs-why", "x": 2000, "y": 1080, "w": 300, "text": "SUBSCRIPTIONS\n\nNot a new data source: a template flagged as a subscription. They still land as bills in This month and get ticked there.\n\nPlan gets a Subscriptions section above Every month, sorted by next renewal, with a monthly figure (yearly ones count a twelfth), a yearly figure, and the next renewal. Trials show when they convert. Cancel reuses Stop after a month.\n\nSheet: two new fields, a subscription switch and an optional trial end date. Renews-on-day is the existing due day." },
+    { "id": "subs-card", "x": 1000, "y": 2320, "w": 260, "text": "Desktop This month gains this card in the right column, under Next up. Three nearest renewals only." }
+  ],
+  "launch": { "view": "canvas" }
+}

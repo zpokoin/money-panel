@@ -3,3 +3,4 @@ node_modules/
 .clasprc.json
 .claude/
 .DS_Store
+design/**/money-panel-*.html

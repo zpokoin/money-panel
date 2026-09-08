@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #111827; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+    a { color: #4338CA; } a:hover { color: #111827; }
+    .card { background: #fff; border: 1px solid #EAECEF; border-radius: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); overflow: hidden; }
+    .ctl { width: 44px; height: 44px; border-radius: 14px; background: #fff; border: 1px solid #EAECEF; display: flex; align-items: center; justify-content: center; color: #6B7280; }
+    .dow { font-size: 11px; font-weight: 600; color: #9CA3AF; text-align: center; letter-spacing: .03em; }
+    .day { height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 5px; padding-top: 7px; border-radius: 12px; }
+    .dn { font-size: 13.5px; font-weight: 500; color: #111827; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .dn.out { color: #C4C7CE; }
+    .dn.today { background: #111827; color: #fff; font-weight: 700; }
+    .dn.late { color: #B42318; font-weight: 700; }
+    .dots { display: flex; gap: 3px; height: 6px; }
+    .dots i { display: block; width: 6px; height: 6px; border-radius: 50%; }
+    .bill { display: flex; align-items: center; gap: 14px; padding: 13px 16px; border-top: 1px solid #F1F2F4; }
+    .tick { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #D0D5DD; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .tick.done { background: #16A34A; border-color: #16A34A; }
+    .nm { font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; display: flex; align-items: center; gap: 7px; }
+    .meta { font-size: 12.5px; color: #6B7280; margin-top: 2px; margin-left: 14px; }
+    .amt { font-size: 16px; font-weight: 600; }
+    .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; color: #9CA3AF; }
+    .tab.on { color: #111827; font-weight: 600; }
+  </style>
+</helmet>
+<div style="width: 390px; height: 920px; background: #F4F5F7; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="flex: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 18px 0 2px;">
+      <div>
+        <div style="font-size: 24px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1;">Calendar</div>
+        <div style="font-size: 13px; color: #6B7280; margin-top: 2px;">9 payments in September · USD 2,705</div>
+      </div>
+      <div class="ctl"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="ctl" style="width: 38px; height: 38px; border-radius: 11px; color: #111827;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></div>
+      <div style="flex: 1; text-align: center; font-size: 16px; font-weight: 700; letter-spacing: -.02em;">September 2026</div>
+      <div class="ctl" style="width: auto; height: 38px; border-radius: 11px; padding: 0 12px; font-size: 13px; font-weight: 600; color: #111827;">Today</div>
+      <div class="ctl" style="width: 38px; height: 38px; border-radius: 11px; color: #111827;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></div>
+    </div>
+
+    <div class="card" style="padding: 12px 8px 10px;">
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-bottom: 4px;">
+        <div class="dow">MON</div><div class="dow">TUE</div><div class="dow">WED</div><div class="dow">THU</div><div class="dow">FRI</div><div class="dow">SAT</div><div class="dow">SUN</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px;">
+        <div class="day"><span class="dn out">31</span></div>
+        <div class="day"><span class="dn late">1</span><div class="dots"><i style="background: #B42318;"></i></div></div>
+        <div class="day"><span class="dn">2</span></div>
+        <div class="day"><span class="dn">3</span></div>
+        <div class="day"><span class="dn">4</span></div>
+        <div class="day"><span class="dn">5</span><div class="dots"><i style="background: #16A34A;"></i></div></div>
+        <div class="day"><span class="dn">6</span></div>
+
+        <div class="day"><span class="dn">7</span></div>
+        <div class="day"><span class="dn today">8</span></div>
+        <div class="day"><span class="dn">9</span></div>
+        <div class="day" style="background: #EEF2FF;"><span class="dn" style="font-weight: 700; color: #4338CA;">10</span><div class="dots"><i style="background: #0EA5E9;"></i></div></div>
+        <div class="day"><span class="dn">11</span></div>
+        <div class="day"><span class="dn">12</span><div class="dots"><i style="background: #0EA5E9;"></i></div></div>
+        <div class="day"><span class="dn">13</span></div>
+
+        <div class="day"><span class="dn">14</span></div>
+        <div class="day"><span class="dn">15</span></div>
+        <div class="day"><span class="dn">16</span></div>
+        <div class="day"><span class="dn">17</span></div>
+        <div class="day"><span class="dn">18</span><div class="dots"><i style="background: #0EA5E9;"></i></div></div>
+        <div class="day"><span class="dn">19</span></div>
+        <div class="day"><span class="dn">20</span><div class="dots"><i style="background: #0EA5E9;"></i><i style="background: #8B5CF6;"></i></div></div>
+
+        <div class="day"><span class="dn">21</span></div>
+        <div class="day"><span class="dn">22</span></div>
+        <div class="day"><span class="dn">23</span></div>
+        <div class="day"><span class="dn">24</span></div>
+        <div class="day"><span class="dn">25</span><div class="dots"><i style="background: #8B5CF6;"></i></div></div>
+        <div class="day"><span class="dn">26</span></div>
+        <div class="day"><span class="dn">27</span></div>
+
+        <div class="day"><span class="dn">28</span><div class="dots"><i style="background: #0EA5E9;"></i></div></div>
+        <div class="day"><span class="dn">29</span></div>
+        <div class="day"><span class="dn">30</span></div>
+        <div class="day"><span class="dn out">1</span><div class="dots"><i style="background: #E4E7EC;"></i></div></div>
+        <div class="day"><span class="dn out">2</span></div>
+        <div class="day"><span class="dn out">3</span></div>
+        <div class="day"><span class="dn out">4</span></div>
+      </div>
+      <div style="display: flex; gap: 14px; justify-content: center; margin-top: 10px; font-size: 11.5px; color: #6B7280;">
+        <span style="display: flex; align-items: center; gap: 5px;"><i style="display: block; width: 6px; height: 6px; border-radius: 50%; background: #16A34A;"></i>paid</span>
+        <span style="display: flex; align-items: center; gap: 5px;"><i style="display: block; width: 6px; height: 6px; border-radius: 50%; background: #0EA5E9;"></i>due · category colour</span>
+        <span style="display: flex; align-items: center; gap: 5px;"><i style="display: block; width: 6px; height: 6px; border-radius: 50%; background: #B42318;"></i>overdue</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; margin: 4px 2px 0;">
+      <div style="font-size: 18px; font-weight: 700; letter-spacing: -.02em;">Thursday 10 Sep</div>
+      <div style="font-size: 13px; color: #6B7280;">1 payment · USD 120</div>
+    </div>
+    <div class="card">
+      <div class="bill" style="border-top: 0;">
+        <div class="tick"></div>
+        <div style="flex: 1; min-width: 0;">
+          <div class="nm"><i style="display: block; width: 7px; height: 7px; border-radius: 50%; background: #0EA5E9;"></i>Electricity</div>
+          <div class="meta">due in 2 days · every month</div>
+        </div>
+        <div class="amt">120</div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C7CE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; gap: 10px; margin: 6px 2px 0;">
+      <div style="font-size: 13px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: .05em;">Next 7 days</div>
+      <div style="font-size: 13px; color: #9CA3AF;">USD 160</div>
+    </div>
+    <div class="card">
+      <div class="bill" style="border-top: 0;">
+        <div class="tick"></div>
+        <div style="flex: 1;"><div class="nm"><i style="display: block; width: 7px; height: 7px; border-radius: 50%; background: #0EA5E9;"></i>Electricity</div><div class="meta">Thu 10 Sep</div></div>
+        <div class="amt">120</div>
+      </div>
+      <div class="bill">
+        <div class="tick"></div>
+        <div style="flex: 1;"><div class="nm"><i style="display: block; width: 7px; height: 7px; border-radius: 50%; background: #0EA5E9;"></i>Water</div><div class="meta">Sat 12 Sep</div></div>
+        <div class="amt">40</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; padding: 8px 10px 22px; background: rgba(255,255,255,.94); border-top: 1px solid #EAECEF;">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path><path d="M8 14l3 3 5-5"></path></svg>This month</div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"></path><path d="M8 15v-4M12 15V8M16 15v-6"></path></svg>Ahead</div>
+    <div class="tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4"></path><circle cx="8" cy="14" r="1.2" fill="currentColor"></circle><circle cx="12" cy="14" r="1.2" fill="currentColor"></circle><circle cx="16" cy="14" r="1.2" fill="currentColor"></circle></svg>Calendar</div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>Plan</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
