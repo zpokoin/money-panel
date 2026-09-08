@@ -63,7 +63,7 @@ svg{display:inline-block;vertical-align:middle}
 .chip.info{color:var(--info);background:var(--info-bg)}
 .chip.neutral{color:var(--muted);background:#F4F5F7}
 .chip.delta{font-size:12px;padding:4px 9px}
-.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill);margin-left:6px;vertical-align:1px}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill);margin-left:6px;vertical-align:1px;white-space:nowrap;flex:0 0 auto}
 .tag.oneoff{color:var(--muted);background:#F4F5F7}
 .tag.every{color:var(--info);background:var(--info-bg)}
 .tag.sub{color:var(--info);background:var(--info-bg)}
@@ -429,13 +429,13 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
   .bills-head .sub{font-size:13.5px}
   .btn-pill{font-size:13px;padding:8px 13px}
   .ghead{padding:11px 20px}
-  .bill{padding:14px 20px;gap:16px}
-  .bill-main{flex:1}
-  .bill-due{width:150px;flex:0 0 150px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bill{padding:14px 20px;gap:14px}
+  .bill-main{flex:1 1 200px;min-width:140px}
+  .bill-due{flex:0 1 150px;min-width:96px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bill-due.late{color:var(--bad)}
   .bill-due.nodate{color:var(--faint)}
   .bill-meta{display:none}
-  .bill-amt{width:90px;flex:0 0 90px;text-align:right}
+  .bill-amt{width:76px;flex:0 0 76px;text-align:right}
   .more{width:28px;height:44px;margin:-10px -6px -10px 0}
   .paid-row{background:var(--soft2);border-top:1px solid var(--hairline)}
   .col.dk .bill{padding:12px 18px;gap:12px}
