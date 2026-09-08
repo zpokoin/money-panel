@@ -563,7 +563,7 @@ function show(tab) {
   exitSelect(false);
   S.tab = tab; S.filterCat = null;
   renderChrome();
-  $('#fab').classList.toggle('hidden', !owner());
+  $('#fab').classList.toggle('hidden', !owner() || tab !== 'month');   // Ahead has its Add pill, Plan its New template button
   window.scrollTo(0, 0);
   load();
 }

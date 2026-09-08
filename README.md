@@ -12,17 +12,17 @@ tick bills as you pay them, and see what's left to spend.
 - Works on phone and desktop. Add the URL to your home screen.
 - Others can be given a view-only link.
 
-<p align="center"><img src="docs/desktop.png" alt="Money Panel on desktop: the Month screen with left-for-expenses, balance, salary and reserve tiles, and bills grouped by category" width="900"></p>
+<p align="center"><img src="docs/desktop.png" alt="Money Panel on desktop: left rail, safe-to-spend hero, bills by due date, and a side column with balance, where the month goes, last three months and next month" width="900"></p>
 
 <table>
   <tr>
-    <td align="center"><img src="docs/month.png" alt="Month screen" width="240"><br><sub><b>Month</b> — what is left, bills to tick off</sub></td>
-    <td align="center"><img src="docs/forecast.png" alt="Forecast screen" width="240"><br><sub><b>Forecast</b> — the next months, expanded</sub></td>
-    <td align="center"><img src="docs/planned.png" alt="Planned screen" width="240"><br><sub><b>Planned</b> — one-offs by month</sub></td>
+    <td align="center"><img src="docs/month.png" alt="This month screen" width="240"><br><sub><b>This month</b> — safe to spend, bills by due date</sub></td>
+    <td align="center"><img src="docs/select.png" alt="Tick several mode" width="240"><br><sub><b>Tick several</b> — payday in one action</sub></td>
+    <td align="center"><img src="docs/ahead.png" alt="Ahead screen" width="240"><br><sub><b>Ahead</b> — running balance, one-offs in their month</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/recurring.png" alt="Recurring screen" width="240"><br><sub><b>Recurring</b> — the templates</sub></td>
-    <td align="center"><img src="docs/masked.png" alt="Month screen with balance hidden" width="240"><br><sub><b>Privacy</b> — balance and salary hidden</sub></td>
+    <td align="center"><img src="docs/plan.png" alt="Plan screen" width="240"><br><sub><b>Plan</b> — templates by rhythm, reserve rule</sub></td>
+    <td align="center"><img src="docs/masked.png" alt="This month with amounts hidden" width="240"><br><sub><b>Private</b> — one switch hides every amount</sub></td>
     <td align="center"><img src="docs/welcome.png" alt="First-run welcome form" width="240"><br><sub><b>First open</b> — three questions and you are in</sub></td>
   </tr>
 </table>
@@ -31,13 +31,14 @@ tick bills as you pay them, and see what's left to spend.
 
 | Tab | What it shows |
 |---|---|
-| **Month** | Left for expenses = bank balance − bills still pending − money kept in reserve. Bills grouped by category, one tap to mark paid (with undo). Paid bills stay listed under "Paid". |
-| **Forecast** | The next 6 or 12 months: salary, expenses, and the running "left after" figure. Months you have not opened yet are projected from your recurring bills plus anything you have planned. |
-| **Planned** | One-off things coming up: a fridge, a trip, a repair. Grouped by month so you can see what lands when. |
-| **Recurring** | Your templates: rent every 2 months, electricity every month, insurance every 6, salary. Each month fills itself in from these. |
+| **This month** | **Safe to spend** = bank balance − unpaid bills − reserve, with the daily pace until payday and a comparison with last month once there is history. Bills are grouped by when they are due: **Overdue**, **This week**, **Later**, and a collapsed **Paid** summary. One tap marks a bill paid (with undo); **Tick several** marks a batch in one go with one undo. A category glance bar shows where the month goes and filters the list. |
+| **Ahead** | The next 6 or 12 months as a running-balance line, one row per month with the month-over-month change, and one-offs (a fridge, a trip) shown as chips inside the month they land in. Months you have not opened yet are projected from your templates. |
+| **Plan** | What every month is built from: salary, the bills that repeat every month, the ones that come now and then, and the **reserve rule** you set once. Each template shows its next occurrence. |
 
-Two privacy buttons in the top bar: one hides salary, balance and left-for-expenses; the
-other hides every number. Handy when someone is looking over your shoulder.
+Balance, salary and reserve are one tap each. A single eye button hides every amount while
+names, dates, overdue flags and ticking keep working. On a wide screen the tabs move into a
+left rail and This month gains a second column: balance freshness, where the month goes,
+safe-to-spend over the last three months, and what next month looks like.
 
 ## Install (about ten minutes, no coding)
 
@@ -54,7 +55,8 @@ other hides every number. Handy when someone is looking over your shoulder.
    (not Library). Execute as **Me**; who has access: **Anyone with Google account**. Deploy,
    approve the permissions, and copy the URL that ends in `/exec`.
 7. Open that URL. The first visit creates the tabs and shows a short welcome form:
-   currency, monthly salary, current balance. Then add your bills in the Recurring tab.
+   currency, monthly salary, current balance. Then add your bills in the Plan tab, with the
+   day of the month each one is due so they sort into Overdue / This week / Later.
 
 Add the URL to your phone's home screen and it behaves like an app.
 
@@ -80,18 +82,27 @@ If you prefer `clasp`: `npx @google/clasp login`, copy `.clasp.json.example` to
   a month you pick. Stopping removes only unpaid rows in later months.
 - **Editing a template** updates unpaid rows from the current month on (optional). A new
   template is added to any month you have already opened where it is due.
-- **Reserve** is money you keep in the account but do not spend. Record what you set aside
-  each month (negative takes some back); the total accumulates and comes off "left for
-  expenses". The forecast assumes you keep setting aside the latest amount.
+- **Reserve** is money you keep in the account but do not spend. Set a monthly rule once in
+  Plan; record what you actually set aside each month from This month (negative takes some
+  back). The total accumulates and comes off safe-to-spend. The forecast keeps the rule aside
+  for months you have not opened.
+- **Due dates** are optional. A template's due day of month becomes each row's due date,
+  clamped to the month's length. Rows without one sit under "Later".
+- **Last month's comparison** uses what safe-to-spend actually was, recorded as you use the
+  app. It stays hidden until there are two months of history, so it never shows an invented
+  number.
 
 ## The tabs it creates
 
 | Tab | Columns |
 |---|---|
-| `Items` | id, month, name, category, amount, status, paid_on, source, template, notes |
-| `Months` | month, salary, balance, balance_updated, expanded, reserve |
-| `Recurring` | id, name, category, amount, every_n_months, start_month, end_month, active |
-| `Settings` | key, value |
+| `Items` | id, month, name, category, amount, status, paid_on, source, template, notes, due_on |
+| `Months` | month, salary, balance, balance_updated, expanded, reserve, left_snapshot |
+| `Recurring` | id, name, category, amount, every_n_months, start_month, end_month, active, due_day |
+| `Settings` | key, value (`currency`, `categories`, `reserve_monthly`) |
+
+Columns are only ever appended. A sheet from an earlier version gets the new headers added
+automatically the next time the owner opens the app, and every new column is optional.
 
 Months are `YYYY-MM`. To change the expense categories or the currency, edit the
 `categories` and `currency` rows in `Settings`. Default categories are Rent, Bills, School,
@@ -111,8 +122,9 @@ account. If edit controls are missing when *you* open it, set `OWNER_EMAIL` at t
 `python3 -m http.server 8765` in this folder, then open
 `http://127.0.0.1:8765/dev/preview.html` to click through the UI with sample data.
 `?fresh=1` shows the first-run welcome flow; `?viewer=1` simulates a non-owner;
-`?tab=forecast&open=2` and `?mask=sens` jump to a state for screenshots. The images in
-`docs/` were taken with headless Chrome against that preview at a 500px-wide window.
+`?tab=ahead&open=2`, `?select=3`, `?mask=all` and `?stale=1` jump to a state for
+screenshots. The images in `docs/` were taken with headless Chrome against that preview at
+a 500px-wide window (1360px for the desktop shot).
 
 ## Not included (yet)
 

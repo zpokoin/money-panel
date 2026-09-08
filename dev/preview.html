@@ -75,7 +75,17 @@
   doc.querySelectorAll('script').forEach(function (s) {
     var el = document.createElement('script'); el.textContent = s.textContent; document.body.appendChild(el);
   });
-  // ?tab=forecast&open=2 jumps to a tab (and expands the nth forecast row) once the app has booted. Used for screenshots.
+  // ?select=3 enters tick-several mode with the first n unpaid bills selected. Used for screenshots.
+  if (params.get('select')) {
+    var t2 = 0;
+    (function sel() {
+      if (window.S && S.data && S.data.month) {
+        var ids = S.data.month.items.filter(function (i) { return i.status !== 'paid'; }).slice(1, 1 + Number(params.get('select'))).map(function (i) { return i.id; });
+        enterSelect(null); ids.forEach(function (id) { S.select.ids[id] = true; }); render();
+      } else if (t2++ < 50) setTimeout(sel, 100);
+    })();
+  }
+  // ?tab=ahead&open=2 jumps to a tab (and expands the nth month row) once the app has booted. Used for screenshots.
   if (params.get('tab')) {
     var tries = 0;
     (function jump() {
