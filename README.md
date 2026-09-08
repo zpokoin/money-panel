@@ -12,6 +12,21 @@ tick bills as you pay them, and see what's left to spend.
 - Works on phone and desktop. Add the URL to your home screen.
 - Others can be given a view-only link.
 
+<p align="center"><img src="docs/desktop.png" alt="Money Panel on desktop: the Month screen with left-for-expenses, balance, salary and reserve tiles, and bills grouped by category" width="900"></p>
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/month.png" alt="Month screen" width="240"><br><sub><b>Month</b> — what is left, bills to tick off</sub></td>
+    <td align="center"><img src="docs/forecast.png" alt="Forecast screen" width="240"><br><sub><b>Forecast</b> — the next months, expanded</sub></td>
+    <td align="center"><img src="docs/planned.png" alt="Planned screen" width="240"><br><sub><b>Planned</b> — one-offs by month</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/recurring.png" alt="Recurring screen" width="240"><br><sub><b>Recurring</b> — the templates</sub></td>
+    <td align="center"><img src="docs/masked.png" alt="Month screen with balance hidden" width="240"><br><sub><b>Privacy</b> — balance and salary hidden</sub></td>
+    <td align="center"><img src="docs/welcome.png" alt="First-run welcome form" width="240"><br><sub><b>First open</b> — three questions and you are in</sub></td>
+  </tr>
+</table>
+
 ## What you get
 
 | Tab | What it shows |
@@ -95,7 +110,9 @@ account. If edit controls are missing when *you* open it, set `OWNER_EMAIL` at t
 
 `python3 -m http.server 8765` in this folder, then open
 `http://127.0.0.1:8765/dev/preview.html` to click through the UI with sample data.
-`?fresh=1` shows the first-run welcome flow; `?viewer=1` simulates a non-owner.
+`?fresh=1` shows the first-run welcome flow; `?viewer=1` simulates a non-owner;
+`?tab=forecast&open=2` and `?mask=sens` jump to a state for screenshots. The images in
+`docs/` were taken with headless Chrome against that preview at a 500px-wide window.
 
 ## Not included (yet)
 

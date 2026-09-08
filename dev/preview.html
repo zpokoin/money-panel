@@ -7,7 +7,7 @@
 <script src="gas-shim.js"></script>
 <script>
 // Local preview: runs the real Code.gs against the in-memory shim, mocks google.script.run,
-// then injects Index.html into this document. ?viewer=1 simulates a non-owner, ?fresh=1 shows first-run setup.
+// then injects Index.html into this document. ?viewer=1 simulates a non-owner, ?fresh=1 shows first-run setup, ?tab=forecast&open=2 and ?mask=sens|all are for screenshots.
 (async function () {
   var code = await (await fetch('../Code.gs', { cache: 'no-store' })).text();
   (0, eval)(code);
@@ -63,9 +63,22 @@
   var doc = new DOMParser().parseFromString(html, 'text/html');
   doc.head.querySelectorAll('style,link,title').forEach(function (n) { document.head.appendChild(n.cloneNode(true)); });
   document.body.innerHTML = doc.body.innerHTML;
+  if (params.get('mask')) { try { localStorage.setItem('budget.mask', JSON.stringify({ sens: params.get('mask') === 'sens', all: params.get('mask') === 'all' })); } catch (e) {} }
+  else { try { localStorage.removeItem('budget.mask'); } catch (e) {} }
   doc.querySelectorAll('script').forEach(function (s) {
     var el = document.createElement('script'); el.textContent = s.textContent; document.body.appendChild(el);
   });
+  // ?tab=forecast&open=2 jumps to a tab (and expands the nth forecast row) once the app has booted. Used for screenshots.
+  if (params.get('tab')) {
+    var tries = 0;
+    (function jump() {
+      if (window.S && S.boot && S.boot.configured) {
+        show(params.get('tab'));
+        var open = Number(params.get('open') || 0);
+        if (open) setTimeout(function () { var r = document.querySelectorAll('.fc-row')[open - 1]; if (r) r.click(); }, 400);
+      } else if (tries++ < 50) setTimeout(jump, 100);
+    })();
+  }
 })();
 </script>
 </head>
