@@ -61,6 +61,8 @@ svg{display:inline-block;vertical-align:middle}
 .tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:var(--radius-pill);margin-left:6px;vertical-align:1px}
 .tag.oneoff{color:var(--muted);background:#F4F5F7}
 .tag.every{color:var(--info);background:var(--info-bg)}
+.tag.sub{color:var(--info);background:var(--info-bg)}
+.tag.trial{color:var(--warn);background:#FFFAEB}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex:0 0 auto}
 .masked{color:var(--disabled);font-weight:700;letter-spacing:.06em}
 .cur{font-size:.6em;font-weight:600;color:var(--faint);letter-spacing:0;margin-right:6px}
@@ -207,6 +209,87 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
 .oneoffs .btn-pill{margin-left:auto;background:#F4F5F7;border-color:#F4F5F7}
 .item-chip{display:inline-flex;font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-pill);white-space:nowrap;line-height:1.6}
 
+/* ---- calendar ---- */
+.calnav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.calnav .m{flex:1;text-align:center;font-size:16px;font-weight:700;letter-spacing:-.02em}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.dow{font-size:11px;font-weight:600;color:var(--faint);text-align:center;letter-spacing:.03em;padding:4px 0}
+.day{height:54px;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:7px;border-radius:12px;width:100%}
+.day.sel{background:var(--info-bg)}
+.dn{font-size:13.5px;font-weight:500;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.dn.out{color:var(--chevron)}
+.dn.today{background:var(--accent);color:#fff;font-weight:700}
+.dn.late{color:var(--bad);font-weight:700}
+.day.sel .dn{font-weight:700;color:var(--info)}
+.day.sel .dn.today{color:#fff}
+.dots{display:flex;gap:3px;height:6px}
+.dots i{display:block;width:6px;height:6px;border-radius:50%}
+.callegend{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.callegend span{display:inline-flex;align-items:center;gap:5px}
+.callegend i{display:block;width:6px;height:6px;border-radius:50%}
+.dayhead{display:flex;align-items:baseline;gap:10px;margin:4px 2px 10px}
+.dayhead h2{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:0}
+.dayhead span{font-size:13px;color:var(--muted)}
+.cell{min-height:100px;padding:8px 8px 6px;border-top:1px solid var(--hairline);border-left:1px solid var(--hairline);display:flex;flex-direction:column;gap:4px;text-align:left;width:100%}
+.cell.first{border-left:0}
+.cell.top{border-top:0}
+.cell.sel{background:var(--info-bg)}
+.cell .dn{width:24px;height:24px;font-size:13px;margin-bottom:2px}
+.cchip{display:flex;flex-direction:column;gap:1px;font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;background:#F4F5F7;color:var(--text);white-space:nowrap;min-width:0}
+.cchip .t{display:flex;align-items:center;gap:5px;min-width:0}
+.cchip .t .dot{width:6px;height:6px}
+.cchip .n{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cchip .a{font-weight:500;color:var(--muted);padding-left:11px}
+.cchip.late{background:var(--bad-bg);color:var(--bad)}
+.cchip.late .a{color:var(--bad)}
+.cchip.paid{color:var(--faint)}
+.cchip.proj{opacity:.55}
+.cell.sel .cchip{background:#fff}
+.cmore{font-size:11px;color:var(--faint);padding-left:4px}
+.dowrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.dowrow .dow{text-align:left;padding:10px 10px 8px;border-bottom:1px solid var(--hairline)}
+
+/* ---- subscriptions ---- */
+.subsum{display:grid;grid-template-columns:1fr 1fr 1.3fr;background:var(--soft);border-bottom:1px solid var(--hairline)}
+.subsum > div{padding:13px 16px}
+.subsum > div + div{border-left:1px solid var(--hairline)}
+.subsum .kl{font-size:11.5px;font-weight:600;color:var(--muted)}
+.subsum .kv{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-top:1px}
+.subsum .kv .cur{font-size:12px}
+.subsum .kn{font-size:13.5px;font-weight:600;margin-top:5px}
+.srow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--hairline);width:100%}
+.srow.off{opacity:.55}
+.lg{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex:0 0 auto}
+.srow > div{flex:1;min-width:0}
+.srow .chev{width:16px;height:16px;color:var(--chevron);flex:0 0 auto}
+.srow .meta{font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .meta.soon{color:var(--warn)}
+.srow .price{margin-left:auto;text-align:right;flex:0 0 auto!important}
+.srow .price b{font-size:16px;font-weight:600;display:block}
+.srow .price span{font-size:11px;color:var(--faint)}
+.subcard .r{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--hairline);font-size:13.5px}
+.subcard .r .lg{width:28px;height:28px;border-radius:9px;font-size:12px}
+
+/* ---- category picker ---- */
+.pick{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:var(--soft);font-size:16px;display:flex;align-items:center;gap:8px;min-height:44px}
+.pick .dot{width:8px;height:8px}
+.pick .chev{margin-left:auto;width:16px;height:16px;color:var(--muted)}
+.picker{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.picker button.opt{display:flex;align-items:center;gap:10px;padding:12px 12px;border-radius:12px;font-weight:600;font-size:15px;background:var(--bg);min-height:44px;width:100%}
+.picker button.opt .dot{width:8px;height:8px}
+.picker button.opt.on{background:var(--accent);color:#fff}
+.picker button.opt .n{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--faint)}
+.picker button.opt.on .n{color:rgba(255,255,255,.7)}
+.picker .newrow{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1px dashed var(--disabled);min-height:44px;font-size:15px;font-weight:600;color:var(--muted);width:100%}
+.picker .newrow svg{width:18px;height:18px}
+.newcat{border:1px solid var(--accent);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.newcat .lbl{font-size:12px;font-weight:600;color:var(--muted)}
+.newcat .in{display:flex;gap:10px}
+.newcat .in input{flex:1;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:var(--soft);font-size:16px;outline:none;min-width:0}
+.newcat .sw{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.newcat .sw button{width:18px;height:18px;border-radius:50%;flex:0 0 auto}
+.newcat .sw button.on{outline:2px solid var(--accent);outline-offset:2px}
+
 /* ---- plan ---- */
 .income{display:flex;align-items:center;gap:12px;padding:14px 16px}
 .income .ic{width:38px;height:38px;border-radius:13px;background:var(--good-bg);color:var(--good);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
@@ -309,6 +392,7 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
   .hdr-title svg{width:18px;height:18px}
   .hdr-sub{font-size:13.5px}
   .grid2{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start}
+  .grid2.cal{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
   .col{display:flex;flex-direction:column;gap:16px}
   .col > .card{margin-bottom:0}
   .hero-dk{padding:22px 24px;display:flex;align-items:flex-end;gap:24px}
@@ -333,6 +417,10 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
   .bill-amt{width:90px;flex:0 0 90px;text-align:right}
   .more{width:28px;height:44px;margin:-10px -6px -10px 0}
   .paid-row{background:var(--soft2);border-top:1px solid var(--hairline)}
+  .col.dk .bill{padding:12px 18px;gap:12px}
+  .col.dk .bill-due{display:none!important}
+  .col.dk .bill-meta{display:block}
+  .col.dk .bill-amt{width:auto;flex:0 0 auto}
   .group{margin-bottom:0;border:0;border-radius:0;box-shadow:none}
   .group + .group{border-top:1px solid var(--hairline)}
   .bucketcard{overflow:hidden}
@@ -408,23 +496,26 @@ var I = {
   down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
   tMonth: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14l3 3 5-5"/></svg>',
   tForecast: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="M8 15v-4M12 15V8M16 15v-6"/></svg>',
+  tCalendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/><circle cx="8" cy="14" r="1.2" fill="currentColor"/><circle cx="12" cy="14" r="1.2" fill="currentColor"/><circle cx="16" cy="14" r="1.2" fill="currentColor"/></svg>',
   tRecurring: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>'
 };
 
 /* ------------------------------------------------------------------ state */
 var CATS = [];
+var CAT_COLORS = {};   // optional per-category colours from Settings
 var CUR = '';
 var PALETTE = ['#6366F1', '#0EA5E9', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#64748B'];
 var CHIP_TINT = { Travel: ['#047857', '#ECFDF5'], Planned: ['#BE185D', '#FDF2F8'], Other: ['#5B21B6', '#F5F3FF'] };
 var TABS = [
   { id: 'month', label: 'This month', icon: I.tMonth },
   { id: 'ahead', label: 'Ahead', icon: I.tForecast },
+  { id: 'calendar', label: 'Calendar', icon: I.tCalendar },
   { id: 'plan', label: 'Plan', icon: I.tRecurring }
 ];
 var TAB_ALIAS = { forecast: 'ahead', planned: 'ahead', recurring: 'plan' };
 var S = {
-  boot: null, tab: 'month', month: null, fcCount: 6,
-  data: { month: null, forecast: null, plan: null },
+  boot: null, tab: 'month', month: null, fcCount: 6, calMonth: null, calDay: null,
+  data: { month: null, forecast: null, plan: null, calendar: null },
   mask: { all: false },
   select: { on: false, ids: {} },
   filterCat: null, paidOpen: false, fcOpen: {}, busy: 0, lastRead: null
@@ -480,7 +571,8 @@ function money(v, mode) {
 function plain(v) { return masked() ? '••••' : (CUR ? CUR + ' ' : '') + fmtNum(v); }   // for text without markup
 function bare(v) { return masked() ? '•••' : fmtNum(v); }
 function signed(v) { return masked() ? '•••' : (v >= 0 ? '+' : '−') + fmtNum(Math.abs(v)); }
-function catColor(c) { if (c === 'Income') return 'var(--c-income)'; var i = CATS.indexOf(c); return PALETTE[(i < 0 ? PALETTE.length - 1 : i) % PALETTE.length]; }
+function catColor(c) { if (c === 'Income') return 'var(--c-income)'; if (CAT_COLORS[c]) return CAT_COLORS[c]; var i = CATS.indexOf(c); return PALETTE[(i < 0 ? PALETTE.length - 1 : i) % PALETTE.length]; }
+function nextFreeColor() { var used = CATS.map(catColor); for (var i = 0; i < PALETTE.length; i++) if (used.indexOf(PALETTE[i]) < 0) return PALETTE[i]; return PALETTE[CATS.length % PALETTE.length]; }
 function catOr(name, fallbackIndex) { return CATS.indexOf(name) >= 0 ? name : CATS[Math.min(fallbackIndex, CATS.length - 1)]; }
 function chipTint(c) { return CHIP_TINT[c] || ['#4338CA', '#EEF2FF']; }
 function owner() { return !!(S.boot && S.boot.isOwner); }
@@ -502,7 +594,7 @@ function onResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(function () {
     var d = isDesktop();
-    if (wasDesktop !== null && d !== wasDesktop) { if (d && S.tab === 'month' && !S.data.forecast) loadForecastForMonth(); else render(); }
+    if (wasDesktop !== null && d !== wasDesktop) { if (d && S.tab === 'month' && !S.data.forecast) loadForecastForMonth(); else render(); if (d && S.tab === 'month' && !S.data.plan) loadPlanForMonth(); }
     else if (S.tab === 'ahead') render();
     wasDesktop = d;
   }, 120);
@@ -510,7 +602,9 @@ function onResize() {
 function applyBoot(b) {
   S.boot = b;
   S.month = b.currentMonth;
+  S.calMonth = S.calMonth || b.currentMonth;
   CATS = b.categories || [];
+  CAT_COLORS = b.categoryColors || {};
   CUR = b.currency || '';
   wasDesktop = isDesktop();
   renderChrome();
@@ -534,7 +628,7 @@ function welcome() {
     noCancel: true,
     onSubmit: function (v) {
       return api('completeSetup', v).then(function (b) {
-        S.data = { month: null, forecast: null, plan: null };
+        S.data = { month: null, forecast: null, plan: null, calendar: null };
         applyBoot(b);
         toast('Ready. Add your bills in the Plan tab.');
       });
@@ -566,7 +660,7 @@ function show(tab) {
   exitSelect(false);
   S.tab = tab; S.filterCat = null;
   renderChrome();
-  $('#fab').classList.toggle('hidden', !owner() || tab !== 'month');   // Ahead has its Add pill, Plan its New template button
+  $('#fab').classList.toggle('hidden', !owner() || (tab !== 'month' && tab !== 'calendar'));   // Ahead has its Add pill, Plan its New template button
   window.scrollTo(0, 0);
   load();
 }
@@ -577,25 +671,34 @@ function load() {
     return api('getMonth', S.month).then(function (d) {
       S.data.month = d; render();
       if (isDesktop() && !S.data.forecast) loadForecastForMonth();
+      if (isDesktop() && !S.data.plan) loadPlanForMonth();
     }).catch(showError);
   }
   if (S.tab === 'ahead') {
     if (!S.data.forecast || S.data.forecast.length !== S.fcCount) v.innerHTML = skeleton();
     return api('getForecast', S.boot.currentMonth, S.fcCount).then(function (d) { S.data.forecast = d; render(); }).catch(showError);
   }
+  if (S.tab === 'calendar') {
+    if (!S.data.calendar || S.data.calendar.month !== S.calMonth) v.innerHTML = skeleton();
+    return api('getCalendar', S.calMonth).then(function (d) { S.data.calendar = d; render(); }).catch(showError);
+  }
   if (!S.data.plan) v.innerHTML = skeleton();
   return api('getPlan').then(function (d) { S.data.plan = d; render(); }).catch(showError);
+}
+function loadPlanForMonth() {
+  api('getPlan').then(function (d) { S.data.plan = d; if (S.tab === 'month') render(); }).catch(function () {});
 }
 function loadForecastForMonth() {
   api('getForecast', S.boot.currentMonth, 6).then(function (d) { S.data.forecast = d; if (S.tab === 'month') render(); }).catch(function () {});
 }
-function invalidate() { S.data.forecast = null; S.data.plan = null; }
+function invalidate() { S.data.forecast = null; S.data.plan = null; S.data.calendar = null; }
 function skeleton() { return '<div class="hdr"><div><div class="hdr-title" style="opacity:.3">&nbsp;</div></div></div><div class="card" style="height:150px;opacity:.5"></div><div class="card" style="height:220px;opacity:.35"></div>'; }
 function render() {
   document.body.classList.toggle('selecting', S.select.on);
-  $('#view').classList.toggle('narrow', S.tab !== 'month');
+  $('#view').classList.toggle('narrow', S.tab === 'ahead' || S.tab === 'plan');
   if (S.tab === 'month') renderMonth();
   else if (S.tab === 'ahead') renderAhead();
+  else if (S.tab === 'calendar') renderCalendar();
   else renderPlan();
 }
 function showError(e) { console.error(e); toast((e && e.message) || String(e)); }
@@ -653,9 +756,10 @@ function byDue(a, b) {
 }
 function tagFor(it) {
   if (it.source !== 'recurring') return '<span class="tag oneoff">one-off</span>';
-  var t = templateFor(it.template);
-  if (t && Number(t.every_n_months) > 1) return '<span class="tag every">every ' + t.every_n_months + ' mo</span>';
-  return '';
+  var out = '';
+  if (it.kind === 'subscription') out += '<span class="tag sub">sub</span>';
+  if (Number(it.every) > 1) out += '<span class="tag every">every ' + it.every + ' mo</span>';
+  return out;
 }
 function templateFor(id) {
   var list = (S.data.plan && S.data.plan.templates) || [];
@@ -802,10 +906,10 @@ function billRow(i, today) {
   var sel = S.select.on && !!S.select.ids[i.id];
   var tick;
   if (S.select.on) tick = '<span class="tick ' + (sel ? 'sel' : '') + '">' + (sel ? I.check : '') + '</span>';
-  else if (owner()) tick = '<button class="tick ' + (paid ? 'done' : '') + '" data-pay="' + esc(i.id) + '" aria-label="' + (paid ? 'Mark as not paid' : 'Mark paid') + '">' + (paid ? I.check : '') + '</button>';
+  else if (owner() && i.id) tick = '<button class="tick ' + (paid ? 'done' : '') + '" data-pay="' + esc(i.id) + '" aria-label="' + (paid ? 'Mark as not paid' : 'Mark paid') + '">' + (paid ? I.check : '') + '</button>';
   else tick = '<span class="tick ' + (paid ? 'done' : '') + '">' + (paid ? I.check : '') + '</span>';
   var name = '<div class="bill-name"><i class="dot" style="background:' + catColor(i.category) + '"></i><span class="nm">' + esc(i.name) + '</span>' + (paid ? '' : tagFor(i)) + '</div>';
-  var trailing = (!S.select.on && owner()) ? '<button class="more" data-menu="' + esc(i.id) + '" aria-label="More"><span class="ph">' + I.chevR + '</span><span class="dk">' + I.dots + '</span></button>' : '';
+  var trailing = (!S.select.on && owner() && i.id) ? '<button class="more" data-menu="' + esc(i.id) + '" aria-label="More"><span class="ph">' + I.chevR + '</span><span class="dk">' + I.dots + '</span></button>' : '';
   return '<div class="bill ' + (paid ? 'paid' : '') + (sel ? ' selected' : '') + '" data-row="' + esc(i.id) + '">' + tick +
     '<div class="bill-main">' + name + '<div class="bill-meta ' + meta.cls + '">' + esc(meta.text) + '</div></div>' +
     '<div class="bill-due dk ' + meta.cls + '">' + esc(meta.short || meta.text) + '</div>' +
@@ -838,6 +942,15 @@ function renderRightCol(d, pending, paid, total, today) {
     h += '<section class="card three"><b class="t">Safe to spend, last ' + hs.length + ' months</b><div class="s">' + word + ' — ' + fmtNum(Math.abs(diff)) + (diff >= 0 ? ' more' : ' less') + ' than ' + esc(monthLong(prev.month)) + '</div><div class="cols">' +
       hs.map(function (x, i) { return '<div class="c ' + (i === hs.length - 1 ? 'now' : '') + '"><span class="v">' + fmtNum(x.left) + '</span><span class="b" style="height:' + Math.max(8, Math.abs(x.left) / mxh * 80) + 'px"></span><span class="m">' + esc(MONTHS[mp(x.month).m - 1]) + '</span></div>'; }).join('') + '</div></section>';
   }
+  // Subscriptions (needs Plan data, loaded lazily on desktop)
+  var subs = subscriptions();
+  if (subs.length && d.month === S.boot.currentMonth) {
+    var st = subTotals(subs);
+    h += '<section class="card subcard" style="padding:18px"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:15px;font-weight:700">Subscriptions</b><span style="font-size:12.5px;color:var(--faint)">' + subs.length + ' active · ' + plain(Math.round(st.month)) + '/mo</span></div>' +
+      '<div style="font-size:12.5px;color:var(--muted);margin:2px 0 8px">Next three renewals</div>' +
+      subs.slice(0, 3).map(function (x, i) { return '<div class="r" ' + (i === 0 ? 'style="border-top:0"' : '') + '><span class="lg" style="background:' + catColor(x.t.category) + '">' + esc(x.t.name.charAt(0).toUpperCase()) + '</span><div style="flex:1"><div style="font-weight:600">' + esc(x.t.name) + '</div><div style="font-size:12px;color:var(--muted)">' + esc(x.when) + '</div></div><div style="font-weight:600">' + money(x.t.amount, 'bare') + '</div></div>'; }).join('') +
+      '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--hairline);margin-top:4px;padding-top:12px;font-size:12.5px;color:var(--muted)"><span>' + plain(Math.round(st.year)) + ' a year</span><button data-act="plan" style="font-weight:600;color:var(--info)">See all in Plan</button></div></section>';
+  }
   // Next up
   var fc = S.data.forecast;
   if (fc && fc.length > 1 && d.month === S.boot.currentMonth) {
@@ -866,6 +979,7 @@ function bindMonth() {
   $$('[data-act="reserve"]', v).forEach(function (b) { b.addEventListener('click', editReserve); });
   var add = $('[data-act="add"]', v); if (add) add.addEventListener('click', function () { openAddItem({ month: S.month }); });
   var ah = $('[data-act="ahead"]', v); if (ah) ah.addEventListener('click', function () { show('ahead'); });
+  var pl = $('[data-act="plan"]', v); if (pl) pl.addEventListener('click', function () { show('plan'); });
   $$('[data-chip]', v).forEach(function (c) { c.addEventListener('click', function () { var it = findItem(c.getAttribute('data-chip')); if (it && owner()) itemMenu(it); }); });
   // rows: select-mode toggle + long-press to enter select mode
   $$('.bill', v).forEach(function (row) {
@@ -895,7 +1009,7 @@ function filterSheet() {
   openSheet(h, function (root) { $$('[data-c]', root).forEach(function (b) { b.addEventListener('click', function () { S.filterCat = b.getAttribute('data-c') || null; closeSheet(); renderMonth(); }); }); });
 }
 function findItem(id) {
-  var pools = [S.data.month && S.data.month.items];
+  var pools = [S.data.month && S.data.month.items, S.data.calendar && S.data.calendar.items];
   (S.data.forecast || []).forEach(function (m) { pools.push(m.items.map(function (i) { i.month = i.month || m.month; return i; })); });
   for (var p = 0; p < pools.length; p++) { var list = pools[p] || []; for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; }
   return null;
@@ -913,7 +1027,8 @@ function togglePaid(id) {
   it.status = paid ? 'paid' : 'pending'; it.paid_on = paid ? S.boot.today : '';
   recalcMonth(); render();
   api('markPaid', id, paid).then(function () {
-    invalidate();
+    S.data.forecast = null; S.data.plan = null;
+    if (S.tab === 'calendar') S.data.month = null; else S.data.calendar = null;
     toast((paid ? 'Marked paid: ' : 'Back to pending: ') + it.name, { label: 'Undo', fn: function () { togglePaid(id); } });
   }).catch(function (e) { showError(e); load(); });
 }
@@ -1004,16 +1119,17 @@ function openAddItem(defaults) {
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true, autofocus: true, placeholder: 'e.g. Car service' },
       { name: 'amount', label: amtLabel('Amount'), type: 'number', required: true },
-      { name: 'category', label: 'Category', type: 'select', value: defaults.category || catOr('Other', CATS.length - 2), options: CATS.map(function (c) { return { value: c, label: c }; }) },
+      { name: 'category', label: 'Category', type: 'category', value: defaults.category || catOr('Other', CATS.length - 2) },
       { name: 'month', label: 'Month', type: 'select', value: defaults.month || S.month, options: monthOptions(defaults.month || S.month) },
       dueField(''),
       { name: 'repeat', label: 'Repeats', type: 'select', value: '0', options: [{ value: '0', label: 'Does not repeat' }, { value: '1', label: 'Every month' }, { value: '2', label: 'Every 2 months' }, { value: '3', label: 'Every 3 months' }, { value: '4', label: 'Every 4 months' }, { value: '6', label: 'Every 6 months' }, { value: '12', label: 'Every year' }] },
+      { name: 'kind', label: 'This is a subscription (when it repeats)', type: 'check', value: false },
       { name: 'notes', label: 'Notes (optional)', type: 'text' }
     ],
     submit: 'Add',
     onSubmit: function (v) {
       var payload = { name: v.name, amount: v.amount, category: v.category, month: v.month, notes: v.notes, due_day: v.due_day };
-      if (Number(v.repeat) > 0) payload.recurring = { every_n_months: Number(v.repeat) };
+      if (Number(v.repeat) > 0) payload.recurring = { every_n_months: Number(v.repeat), kind: v.kind ? 'subscription' : '' };
       return api('addItem', payload).then(function () {
         if (S.tab === 'month' && v.month !== S.month) S.month = v.month;
         afterWrite('Added ' + v.name + ' to ' + monthLabel(v.month));
@@ -1027,7 +1143,7 @@ function editItem(it) {
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true, value: it.name },
       { name: 'amount', label: amtLabel('Amount'), type: 'number', required: true, value: it.amount },
-      { name: 'category', label: 'Category', type: 'select', value: it.category, options: CATS.map(function (c) { return { value: c, label: c }; }) },
+      { name: 'category', label: 'Category', type: 'category', value: it.category },
       dueField(it.due_on ? Number(it.due_on.slice(8, 10)) : ''),
       { name: 'notes', label: 'Notes (optional)', type: 'text', value: it.notes || '' }
     ],
@@ -1111,6 +1227,7 @@ function editReserveRule() {
 function onFab() {
   if (S.tab === 'plan') return editRecurring(null);
   if (S.tab === 'ahead') return openAddItem({ category: catOr('Planned', CATS.length - 1), month: monthAdd(S.boot.currentMonth, 1) });
+  if (S.tab === 'calendar') return openAddItem({ month: S.calMonth });
   openAddItem({ month: S.month });
 }
 
@@ -1190,6 +1307,106 @@ function lineChart(fc) {
   return s + '</svg>';
 }
 
+/* ------------------------------------------------------------------ calendar */
+function calKey(it) { return it.status === 'paid' ? (it.paid_on || it.due_on) : it.due_on; }
+function calState(it, today) {
+  if (it.status === 'paid') return 'paid';
+  if (it.status === 'projected') return 'proj';
+  return it.due_on && it.due_on < today ? 'late' : 'due';
+}
+function renderCalendar() {
+  var c = S.data.calendar; if (!c) return;
+  var today = c.today, month = c.month, isCur = month === S.boot.currentMonth;
+  var byDay = {};
+  c.items.forEach(function (it) { var k = calKey(it); if (k) (byDay[k] = byDay[k] || []).push(it); });
+  Object.keys(byDay).forEach(function (k) { byDay[k].sort(byDue); });
+  var inMonth = c.items.filter(function (it) { return it.month === month; });
+  var paidN = 0, paidT = 0, dueT = 0, dueN = 0, lateT = 0, lateN = 0;
+  inMonth.forEach(function (it) {
+    if (it.status === 'paid') { paidN++; paidT += it.amount; }
+    else { dueN++; dueT += it.amount; if (it.due_on && it.due_on < today) { lateN++; lateT += it.amount; } }
+  });
+  var total = paidT + dueT;
+  if (!S.calDay || S.calDay.slice(0, 7) !== month) {
+    S.calDay = isCur ? today : (Object.keys(byDay).filter(function (k) { return k.slice(0, 7) === month; }).sort()[0] || month + '-01');
+  }
+  var sel = S.calDay, selItems = byDay[sel] || [];
+  var selTotal = selItems.reduce(function (a, i) { return a + i.amount; }, 0);
+  var noDate = inMonth.filter(function (it) { return it.status !== 'paid' && !it.due_on; }).sort(byDue);
+  var week = [];
+  for (var i = 0; i < 7; i++) { var dd = toDate(today); dd.setDate(dd.getDate() + i); var k = dd.getFullYear() + '-' + ('0' + (dd.getMonth() + 1)).slice(-2) + '-' + ('0' + dd.getDate()).slice(-2); (byDay[k] || []).forEach(function (it) { if (it.status !== 'paid') week.push(it); }); }
+  var weekTotal = week.reduce(function (a, i) { return a + i.amount; }, 0);
+
+  // grid geometry (weeks start Monday)
+  var first = toDate(month + '-01'), lead = (first.getDay() + 6) % 7, days = lastDay(month);
+  var cells = [];
+  for (var p = lead; p > 0; p--) { var pd = new Date(first); pd.setDate(1 - p); cells.push(pd); }
+  for (var d = 1; d <= days; d++) cells.push(new Date(first.getFullYear(), first.getMonth(), d));
+  while (cells.length % 7) { var nd = new Date(first.getFullYear(), first.getMonth(), days + (cells.length - lead - days) + 1); cells.push(nd); }
+  function key(dt) { return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2); }
+  var DOW = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
+  var sub = pluralize(inMonth.length, 'payment') + ' · ' + plain(total) + (paidN || lateN ? ' · ' + [paidN ? paidN + ' paid' : '', lateN ? lateN + ' overdue' : ''].filter(Boolean).join(', ') : '');
+  var h = '<div class="hdr"><div><div class="hdr-title ph">Calendar</div><button class="hdr-title dk" data-act="pickcal">' + esc(monthLabel(month)) + I.chev + '</button><div class="hdr-sub"><span class="ph">' + (isCur ? pluralize(inMonth.length, 'payment') + ' in ' + esc(monthLong(month)) + ' · ' + plain(total) : sub) + '</span><span class="dk">' + sub + '</span></div></div>' +
+          '<div class="hdr-right">' + eyeBtn() + '<span class="dk"><span class="hdr-right"><button class="ctl sm" data-calnav="-1" aria-label="Previous month">' + I.left + '</button><button class="ctl sm" data-calnav="0">Today</button><button class="ctl sm" data-calnav="1" aria-label="Next month">' + I.right + '</button></span></span></div></div>' +
+          (masked() ? '<div class="private-strip">' + I.eyeOff + '<span>Amounts hidden. Names, dates and ticking still work.</span></div>' : '');
+  h += '<div class="calnav ph"><button class="ctl sm" data-calnav="-1" aria-label="Previous month">' + I.left + '</button><div class="m">' + esc(monthLabel(month)) + '</div><button class="ctl sm" data-calnav="0">Today</button><button class="ctl sm" data-calnav="1" aria-label="Next month">' + I.right + '</button></div>';
+
+  h += '<div class="grid2 cal"><div class="col">';
+  // phone grid
+  h += '<section class="card ph" style="padding:12px 8px 10px"><div class="calgrid">' + DOW.map(function (x) { return '<div class="dow">' + x + '</div>'; }).join('') + '</div><div class="calgrid">';
+  cells.forEach(function (dt) {
+    var k = key(dt), out = k.slice(0, 7) !== month, list = byDay[k] || [];
+    var st = list.map(function (it) { return calState(it, today); });
+    var cls = 'dn' + (k === today ? ' today' : out ? ' out' : st.indexOf('late') >= 0 ? ' late' : '');
+    var dots = list.slice(0, 3).map(function (it) { var s = calState(it, today); return '<i style="background:' + (s === 'paid' ? '#16A34A' : s === 'late' ? '#B42318' : s === 'proj' ? '#E4E7EC' : catColor(it.category)) + '"></i>'; }).join('');
+    h += '<button class="day ' + (k === sel ? 'sel' : '') + '" data-day="' + k + '"><span class="' + cls + '">' + dt.getDate() + '</span>' + (dots ? '<span class="dots">' + dots + '</span>' : '') + '</button>';
+  });
+  h += '</div><div class="callegend"><span><i style="background:#16A34A"></i>paid</span><span><i style="background:#0EA5E9"></i>due · category colour</span><span><i style="background:#B42318"></i>overdue</span><span><i style="background:#E4E7EC"></i>projected</span></div></section>';
+  // desktop grid
+  h += '<section class="card dk"><div class="dowrow">' + DOW.map(function (x) { return '<div class="dow">' + x + '</div>'; }).join('') + '</div><div class="calgrid" style="gap:0">';
+  cells.forEach(function (dt, idx) {
+    var k = key(dt), out = k.slice(0, 7) !== month, list = byDay[k] || [];
+    var cls = 'dn' + (k === today ? ' today' : out ? ' out' : list.some(function (it) { return calState(it, today) === 'late'; }) ? ' late' : '');
+    var chips = list.slice(0, 3).map(function (it) {
+      var s = calState(it, today);
+      return '<div class="cchip ' + s + '"><span class="t">' + (s === 'paid' ? '<span style="width:10px;height:10px;display:inline-flex;color:#16A34A">' + I.check + '</span>' : '<i class="dot" style="background:' + (s === 'late' ? '#B42318' : catColor(it.category)) + '"></i>') + '<span class="n">' + esc(it.name) + '</span></span><span class="a">' + bare(it.amount) + '</span></div>';
+    }).join('') + (list.length > 3 ? '<div class="cmore">+' + (list.length - 3) + ' more</div>' : '');
+    h += '<button class="cell ' + (idx % 7 === 0 ? 'first' : '') + (idx < 7 ? ' top' : '') + (k === sel ? ' sel' : '') + '" data-day="' + k + '"><span class="' + cls + '">' + dt.getDate() + '</span>' + chips + '</button>';
+  });
+  h += '</div></section>';
+  // phone: selected day + next 7 days + no date
+  var selDate = toDate(sel);
+  var dayTitle = DAYS_LONG[selDate.getDay()] + ' ' + dateLabel(sel);
+  h += '<div class="ph"><div class="dayhead"><h2>' + esc(dayTitle) + '</h2><span>' + (selItems.length ? pluralize(selItems.length, 'payment') + ' · ' + plain(selTotal) : 'nothing due') + '</span></div>';
+  if (selItems.length) h += '<section class="card">' + selItems.map(function (i) { return billRow(i, today); }).join('') + '</section>';
+  if (week.length) h += '<div class="sec" style="margin-top:8px">Next 7 days<span>' + plain(weekTotal) + '</span></div><section class="card">' + week.map(function (i) { return billRow(i, today); }).join('') + '</section>';
+  if (noDate.length) h += '<div class="sec" style="margin-top:8px">No date set<span>' + pluralize(noDate.length, 'bill') + '</span></div><section class="card">' + noDate.map(function (i) { return billRow(i, today); }).join('') + '</section>';
+  h += '</div></div>';
+  // desktop right column
+  h += '<div class="col dk">';
+  h += '<section class="card"><div style="display:flex;align-items:baseline;gap:10px;padding:16px 18px 6px"><b style="font-size:15px;font-weight:700">' + esc(dayTitle) + '</b><span style="font-size:12.5px;color:var(--muted)">' + (selItems.length ? pluralize(selItems.length, 'payment') + ' · ' + plain(selTotal) : 'nothing due') + '</span></div>' + (selItems.length ? selItems.map(function (i) { return billRow(i, today); }).join('') : '<div style="height:8px"></div>') + '</section>';
+  h += '<section class="card" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr))"><div style="padding:15px 18px"><div class="kl">Paid</div><div class="kv" style="color:var(--good)">' + money(paidT, 'bare') + '</div><div style="font-size:11.5px;color:var(--faint)">' + pluralize(paidN, 'payment') + '</div></div><div style="padding:15px 18px;border-left:1px solid var(--hairline)"><div class="kl">Still due</div><div class="kv">' + money(dueT, 'bare') + '</div><div style="font-size:11.5px;color:var(--faint)">' + pluralize(dueN, 'payment') + '</div></div><div style="padding:15px 18px;border-left:1px solid var(--hairline)"><div class="kl" style="color:' + (lateN ? 'var(--bad)' : 'var(--muted)') + '">Overdue</div><div class="kv" style="color:' + (lateN ? 'var(--bad)' : 'inherit') + '">' + money(lateT, 'bare') + '</div><div style="font-size:11.5px;color:' + (lateN ? 'var(--bad)' : 'var(--faint)') + '">' + pluralize(lateN, 'payment') + '</div></div></section>';
+  if (week.length) h += '<section class="card"><div style="display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 6px"><b style="font-size:15px;font-weight:700">Next 7 days</b><span style="font-size:12.5px;color:var(--faint)">' + plain(weekTotal) + '</span></div>' + week.map(function (i) { return billRow(i, today); }).join('') + '</section>';
+  if (noDate.length) h += '<section class="card"><div style="display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 6px"><b style="font-size:15px;font-weight:700">No date set</b><span style="font-size:12.5px;color:var(--faint)">' + pluralize(noDate.length, 'bill') + '</span></div>' + noDate.map(function (i) { return billRow(i, today); }).join('') + '</section>';
+  h += '</div></div>';
+
+  $('#view').innerHTML = h;
+  var v = $('#view');
+  var e = $('[data-act="mask"]', v); if (e) e.addEventListener('click', function () { setMask(!masked()); });
+  var pc = $('[data-act="pickcal"]', v); if (pc) pc.addEventListener('click', function () { calPicker(); });
+  $$('[data-calnav]', v).forEach(function (b) { b.addEventListener('click', function () { var n = Number(b.getAttribute('data-calnav')); S.calMonth = n === 0 ? S.boot.currentMonth : monthAdd(S.calMonth, n); S.calDay = null; load(); }); });
+  $$('[data-day]', v).forEach(function (b) { b.addEventListener('click', function () { S.calDay = b.getAttribute('data-day'); renderCalendar(); }); });
+  $$('[data-pay]', v).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); togglePaid(b.getAttribute('data-pay')); }); });
+  $$('[data-menu]', v).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); itemMenu(findItem(b.getAttribute('data-menu'))); }); });
+}
+function calPicker() {
+  var opts = monthOptions(S.calMonth);
+  openSheet('<h2>Go to month</h2><div class="menu">' + opts.map(function (o) { return '<button data-m="' + esc(o.value) + '" ' + (o.value === S.calMonth ? 'style="background:var(--accent);color:#fff"' : '') + '>' + esc(o.label) + (o.value === S.boot.currentMonth ? '<span class="chip good now">now</span>' : '') + '</button>'; }).join('') + '</div>', function (root) {
+    $$('[data-m]', root).forEach(function (b) { b.addEventListener('click', function () { S.calMonth = b.getAttribute('data-m'); S.calDay = null; closeSheet(); load(); }); });
+  });
+}
+
 /* ------------------------------------------------------------------ plan */
 function nextDueMonths(t, from, count) {
   var out = [];
@@ -1225,12 +1442,25 @@ function renderPlan() {
   var active = p.templates.filter(function (t) { return t.active === 'yes'; });
   var off = p.templates.filter(function (t) { return t.active !== 'yes'; });
   var income = active.filter(function (t) { return t.category === 'Income'; });
-  var monthly = active.filter(function (t) { return t.category !== 'Income' && Number(t.every_n_months) === 1; });
-  var nowThen = active.filter(function (t) { return t.category !== 'Income' && Number(t.every_n_months) > 1; });
+  var monthly = active.filter(function (t) { return t.category !== 'Income' && t.kind !== 'subscription' && Number(t.every_n_months) === 1; });
+  var nowThen = active.filter(function (t) { return t.category !== 'Income' && t.kind !== 'subscription' && Number(t.every_n_months) > 1; });
+  var subs = subscriptions();
   income.forEach(function (t) {
     h += '<' + (owner() ? 'button' : 'div') + ' class="card income" ' + (owner() ? 'data-rec="' + esc(t.id) + '"' : '') + ' style="width:100%"><span class="ic">' + I.down + '</span><div><div class="t">' + esc(t.name) + '</div><div class="s">Comes in ' + repeatLabel(t.every_n_months).toLowerCase() + ' · since ' + esc(monthLabel(t.start_month)) + '</div></div><div class="v"><b>' + money(t.amount, 'bare') + '</b><span>' + esc(CUR) + ' in</span></div></' + (owner() ? 'button' : 'div') + '>';
   });
   if (!income.length && owner()) h += '<section class="card"><div class="empty"><strong>No salary yet</strong>Add an Income template so the forecast knows what comes in.</div></section>';
+  if (subs.length || owner()) {
+    var trials = subs.filter(function (x) { return x.t.trial_ends && x.t.trial_ends >= S.boot.today; }).length;
+    var st = subTotals(subs);
+    h += '<div class="sec">Subscriptions<span>' + (subs.length ? subs.length + ' active' + (trials ? ' · ' + pluralize(trials, 'trial') : '') : '') + '</span></div><section class="card">';
+    if (subs.length) {
+      h += '<div class="subsum"><div><div class="kl">A month</div><div class="kv">' + money(Math.round(st.month)) + '</div></div><div><div class="kl">A year</div><div class="kv">' + money(Math.round(st.year), 'bare') + '</div></div><div><div class="kl">Next renewal</div><div class="kn">' + esc(subs[0].t.name) + (subs[0].days !== null && subs[0].days >= 0 ? ' · ' + (subs[0].days === 0 ? 'today' : subs[0].days === 1 ? 'tomorrow' : 'in ' + subs[0].days + ' days') : '') + '</div></div></div>';
+      h += subs.map(function (x, i) { return srow(x, i === 0); }).join('');
+    } else {
+      h += '<div class="empty"><strong>No subscriptions yet</strong>Netflix, the gym, cloud storage. Add one and it shows here with its next renewal.' + (owner() ? '<br><button class="btn" style="margin-top:12px" data-act="newsub">Add a subscription</button>' : '') + '</div>';
+    }
+    h += '</section>';
+  }
   var monthlyOut = monthly.reduce(function (a, t) { return a + t.amount; }, 0);
   h += '<div class="sec">Every month<span>' + plain(monthlyOut) + ' out</span></div><section class="card">';
   h += monthly.length ? monthly.map(function (t) { return trow(t, p); }).join('') : '<div class="empty">No monthly bills yet.</div>';
@@ -1250,21 +1480,31 @@ function renderPlan() {
   $$('[data-rec]').forEach(function (b) { b.addEventListener('click', function () { var t = p.templates.filter(function (x) { return x.id === b.getAttribute('data-rec'); })[0]; if (owner()) editRecurring(t); }); });
   var r = $('[data-act="rule"]'); if (r) r.addEventListener('click', editReserveRule);
   var n = $('[data-act="newtpl"]'); if (n) n.addEventListener('click', function () { editRecurring(null); });
+  var ns = $('[data-act="newsub"]'); if (ns) ns.addEventListener('click', function () { editRecurring(null, { subscription: true }); });
+}
+function srow(x, first) {
+  var t = x.t, tag = owner() ? 'button' : 'div';
+  var tags = (t.trial_ends && t.trial_ends >= S.boot.today ? '<span class="tag trial">trial</span>' : '') + (Number(t.every_n_months) === 12 ? '<span class="tag every">yearly</span>' : Number(t.every_n_months) > 1 ? '<span class="tag every">every ' + t.every_n_months + ' mo</span>' : '');
+  return '<' + tag + ' class="srow" ' + (owner() ? 'data-rec="' + esc(t.id) + '"' : '') + (first ? ' style="border-top:0"' : '') + '><span class="lg" style="background:' + catColor(t.category) + '">' + esc(t.name.charAt(0).toUpperCase()) + '</span>' +
+    '<div style="min-width:0"><div class="trow-name"><span class="nm">' + esc(t.name) + '</span>' + tags + '</div><div class="meta ' + (x.soon ? 'soon' : '') + '">' + esc(x.when) + (Number(t.every_n_months) > 1 && !x.soon ? ' · ' + bare(Math.round(x.monthly)) + ' a month' : '') + '</div></div>' +
+    '<div class="price"><b>' + money(t.amount, 'bare') + '</b><span>' + cadenceSuffix(t) + '</span></div>' + (owner() ? I.chevR : '') + '</' + tag + '>';
 }
 function trow(t, p) {
   var multi = Number(t.every_n_months) > 1;
   var tag = owner() ? 'button' : 'div';
   return '<' + tag + ' class="trow ' + (t.active === 'yes' ? '' : 'off') + '" ' + (owner() ? 'data-rec="' + esc(t.id) + '"' : '') + '><div class="trow-main"><div class="trow-name"><i class="dot" style="background:' + catColor(t.category) + '"></i><span class="nm">' + esc(t.name) + '</span>' + (multi ? '<span class="tag every">every ' + t.every_n_months + ' mo</span>' : '') + '</div><div class="trow-sub">' + esc(occurrenceText(t, p)) + '</div></div><div class="trow-amt">' + money(t.amount, 'bare') + '</div>' + (owner() ? I.chevR : '') + '</' + tag + '>';
 }
-function editRecurring(t) {
+function editRecurring(t, opts) {
   var isNew = !t;
-  var cats = CATS.concat(['Income']).map(function (c) { return { value: c, label: c === 'Income' ? 'Income (salary)' : c }; });
+  var isSub = t ? t.kind === 'subscription' : !!(opts && opts.subscription);
   var fields = [
     { name: 'name', label: 'Name', type: 'text', required: true, value: t ? t.name : '', autofocus: isNew },
     { name: 'amount', label: amtLabel('Amount'), type: 'number', required: true, value: t ? t.amount : '' },
-    { name: 'category', label: 'Category', type: 'select', value: t ? t.category : catOr('Bills', 0), options: cats },
+    { name: 'category', label: 'Category', type: 'category', value: t ? t.category : catOr('Bills', 0), income: true },
     { name: 'every_n_months', label: 'Repeats', type: 'select', value: t ? String(t.every_n_months) : '1', options: [1, 2, 3, 4, 6, 12].map(function (n) { return { value: String(n), label: repeatLabel(n) }; }) },
     dueField(t && t.due_day ? t.due_day : ''),
+    { name: 'kind', label: 'This is a subscription', type: 'check', value: isSub, hint: 'Shows under Subscriptions in Plan and counts toward the monthly figure' },
+    { name: 'trial_ends', label: 'Free trial ends (optional)', type: 'date', value: t && t.trial_ends ? t.trial_ends : '' },
     { name: 'start_month', label: 'First month', type: 'select', value: t ? t.start_month : S.boot.currentMonth, options: monthOptions(t ? t.start_month : null) },
     { name: 'end_month', label: 'Last month', type: 'select', value: t && t.end_month ? t.end_month : '', options: [{ value: '', label: 'No end' }].concat(monthOptions(t ? t.end_month : null)) }
   ];
@@ -1273,18 +1513,107 @@ function editRecurring(t) {
     fields.push({ name: 'apply', label: 'Update unpaid rows from this month onward', type: 'check', value: true });
   }
   formSheet({
-    title: isNew ? 'New template' : 'Edit ' + t.name,
+    title: isNew ? (isSub ? 'New subscription' : 'New template') : 'Edit ' + t.name,
     hint: isNew ? 'It will be added to months you have already opened where it is due, and to future months as you open them.' : 'Paid rows are never changed.',
     fields: fields,
     submit: isNew ? 'Create' : 'Save',
-    extra: isNew ? '' : '<button class="btn danger block" type="button" data-x="stop" style="margin-top:8px">' + I.stop + ' Stop after a month…</button>',
+    extra: isNew ? '' : '<button class="btn danger block" type="button" data-x="stop" style="margin-top:8px">' + I.stop + (t.kind === 'subscription' ? ' Mark as cancelled after a month…' : ' Stop after a month…') + '</button>',
     bind: function (root) { var st = $('[data-x="stop"]', root); if (st) st.addEventListener('click', function () { stopTemplate(t.id, t.name, S.boot.currentMonth); }); },
     onSubmit: function (v) {
-      var payload = { id: t ? t.id : '', name: v.name, amount: v.amount, category: v.category, every_n_months: v.every_n_months, due_day: v.due_day, start_month: v.start_month, end_month: v.end_month, active: isNew || v.active ? 'yes' : 'no' };
+      var payload = { id: t ? t.id : '', name: v.name, amount: v.amount, category: v.category, every_n_months: v.every_n_months, due_day: v.due_day, start_month: v.start_month, end_month: v.end_month, active: isNew || v.active ? 'yes' : 'no', kind: v.kind ? 'subscription' : '', trial_ends: v.trial_ends };
       return api('saveRecurring', payload, { applyToPending: !!v.apply }).then(function () { S.data.month = null; afterWrite(isNew ? 'Created ' + v.name : 'Saved ' + v.name); });
     }
   });
 }
+
+/* ------------------------------------------------------------------ category picker */
+function bindCategoryPicker(field, f) {
+  var input = $('input[type=hidden]', field), btn = $('.pick', field), panel = $('.picker', field);
+  var creating = false, newColor = nextFreeColor();
+  function counts() {
+    var c = {};
+    var pool = (S.data.plan && S.data.plan.templates) || [];
+    pool.forEach(function (t) { if (t.active === 'yes') c[t.category] = (c[t.category] || 0) + 1; });
+    return c;
+  }
+  function draw() {
+    var cur = input.value, c = counts();
+    var list = CATS.slice(); if (f.income) list.push('Income');
+    var h = list.map(function (cat) {
+      return '<button type="button" class="opt ' + (cat === cur ? 'on' : '') + '" data-c="' + esc(cat) + '"><i class="dot" style="background:' + catColor(cat) + '"></i>' + esc(cat === 'Income' ? 'Income (salary)' : cat) + (c[cat] ? '<span class="n">' + pluralize(c[cat], 'template') + '</span>' : '') + (cat === cur ? '<span style="margin-left:6px;width:16px;height:16px;display:inline-flex">' + I.check + '</span>' : '') + '</button>';
+    }).join('');
+    if (owner()) {
+      h += creating
+        ? '<div class="newcat"><div class="lbl">New category</div><div class="in"><input type="text" placeholder="Name" data-newname><button type="button" class="btn" data-newadd>Add</button></div><div class="sw">Colour ' + PALETTE.map(function (p) { return '<button type="button" data-col="' + p + '" class="' + (p === newColor ? 'on' : '') + '" style="background:' + p + '"></button>'; }).join('') + '</div></div>'
+        : '<button type="button" class="newrow" data-newcat>' + I.plus + 'New category</button>';
+    }
+    panel.innerHTML = h;
+    $$('[data-c]', panel).forEach(function (b) { b.addEventListener('click', function () { choose(b.getAttribute('data-c')); }); });
+    var nc = $('[data-newcat]', panel); if (nc) nc.addEventListener('click', function () { creating = true; draw(); setTimeout(function () { var i = $('[data-newname]', panel); if (i) i.focus(); }, 30); });
+    $$('[data-col]', panel).forEach(function (b) { b.addEventListener('click', function () { newColor = b.getAttribute('data-col'); $$('[data-col]', panel).forEach(function (x) { x.classList.toggle('on', x === b); }); }); });
+    var add = $('[data-newadd]', panel);
+    if (add) {
+      var go = function () {
+        var name = ($('[data-newname]', panel).value || '').trim();
+        if (!name) return;
+        add.disabled = true;
+        api('addCategory', name, newColor).then(function (r) {
+          CATS = r.categories; CAT_COLORS = r.categoryColors || {};
+          creating = false; choose(name); toast('Added ' + name);
+        }).catch(function (e) { add.disabled = false; showError(e); });
+      };
+      add.addEventListener('click', go);
+      $('[data-newname]', panel).addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    }
+  }
+  function choose(cat) {
+    input.value = cat;
+    $('.dot', btn).style.background = catColor(cat);
+    $('.pv', btn).textContent = cat === 'Income' ? 'Income (salary)' : cat;
+    panel.classList.add('hidden');
+  }
+  btn.addEventListener('click', function () { var open = panel.classList.contains('hidden'); if (open) draw(); panel.classList.toggle('hidden', !open); });
+}
+
+/* ------------------------------------------------------------------ subscriptions (derived from Plan data) */
+function nextRenewal(t) {
+  var cur = S.boot.currentMonth, today = S.boot.today;
+  for (var i = 0; i < 48; i++) {
+    var m = monthAdd(cur, i);
+    if (t.active !== 'yes' || !t.start_month || m < t.start_month) continue;
+    if (t.end_month && m > t.end_month) return null;
+    if (monthDiff(t.start_month, m) % Math.max(1, Number(t.every_n_months) || 1) !== 0) continue;
+    var d = Number(t.due_day) ? m + '-' + ('0' + Math.min(Number(t.due_day), lastDay(m))).slice(-2) : m + '-01';
+    if (t.trial_ends && d <= t.trial_ends) continue;
+    if (d < today && m === cur) {
+      // due earlier this month: renewed already unless the row is still unpaid
+      var row = S.data.plan && S.data.plan.currentItems.filter(function (x) { return x.template === t.id; })[0];
+      if (!row || row.status === 'paid') continue;
+    }
+    return d;
+  }
+  return null;
+}
+function subscriptions() {
+  var p = S.data.plan; if (!p) return [];
+  var today = S.boot.today;
+  return p.templates.filter(function (t) { return t.kind === 'subscription' && t.active === 'yes'; }).map(function (t) {
+    var d = nextRenewal(t), days = d ? daysBetween(today, d) : null;
+    var when = d === null ? 'no renewal ahead'
+      : t.trial_ends && t.trial_ends >= today ? 'Trial ends ' + dateLabel(t.trial_ends) + ' · first charge ' + bare(t.amount)
+      : days < 0 ? 'Overdue · was ' + dateLabel(d)
+      : days === 0 ? 'Renews today'
+      : days === 1 ? 'Renews tomorrow · ' + dateLabel(d)
+      : days <= 7 ? 'Renews in ' + days + ' days · ' + dateLabel(d)
+      : 'Renews ' + dateLabel(d) + (mp(d.slice(0, 7)).y !== mp(today.slice(0, 7)).y ? ' ' + d.slice(0, 4) : '');
+    return { t: t, next: d || '9999', days: days, when: when, soon: (days !== null && days <= 3) || (t.trial_ends && t.trial_ends >= today), monthly: t.amount / Math.max(1, Number(t.every_n_months) || 1) };
+  }).sort(function (a, b) { return a.next < b.next ? -1 : a.next > b.next ? 1 : a.t.name.localeCompare(b.t.name); });
+}
+function subTotals(subs) {
+  var month = subs.reduce(function (a, x) { return a + (x.t.trial_ends && x.t.trial_ends >= S.boot.today ? 0 : x.monthly); }, 0);
+  return { month: month, year: month * 12 };
+}
+function cadenceSuffix(t) { var n = Number(t.every_n_months) || 1; return n === 1 ? '/mo' : n === 12 ? '/yr' : '/' + n + ' mo'; }
 
 /* ------------------------------------------------------------------ sheet + forms */
 function openSheet(html, bind, opts) {
@@ -1303,9 +1632,16 @@ function closeSheet() { $('#sheetHost').innerHTML = ''; document.removeEventList
 function formSheet(cfg) {
   var h = '<h2>' + esc(cfg.title) + '</h2>' + (cfg.hint ? '<p class="hint">' + esc(cfg.hint) + '</p>' : '') + '<form novalidate>';
   cfg.fields.forEach(function (f) {
-    if (f.type === 'check') { h += '<div class="field check"><input type="checkbox" id="f_' + f.name + '" name="' + f.name + '" ' + (f.value ? 'checked' : '') + '><label for="f_' + f.name + '">' + esc(f.label) + '</label></div>'; return; }
+    if (f.type === 'check') { h += '<div class="field check"><input type="checkbox" id="f_' + f.name + '" name="' + f.name + '" ' + (f.value ? 'checked' : '') + '><label for="f_' + f.name + '">' + esc(f.label) + (f.hint ? '<span style="display:block;font-size:12px;color:var(--muted);font-weight:400">' + esc(f.hint) + '</span>' : '') + '</label></div>'; return; }
+    if (f.type === 'category') {
+      h += '<div class="field" data-catfield="' + f.name + '"><label>' + esc(f.label) + '</label><input type="hidden" name="' + f.name + '" value="' + esc(f.value || '') + '">' +
+           '<button type="button" class="pick"><i class="dot" style="background:' + catColor(f.value) + '"></i><span class="pv">' + esc(f.value === 'Income' ? 'Income (salary)' : f.value || 'Choose') + '</span>' + I.chev + '</button><div class="picker hidden"></div></div>';
+      return;
+    }
     h += '<div class="field"><label for="f_' + f.name + '">' + esc(f.label) + '</label>';
-    if (f.type === 'select') {
+    if (f.type === 'date') {
+      h += '<input type="date" id="f_' + f.name + '" name="' + f.name + '" value="' + esc(f.value || '') + '">';
+    } else if (f.type === 'select') {
       h += '<select id="f_' + f.name + '" name="' + f.name + '">' + f.options.map(function (o) { return '<option value="' + esc(o.value) + '" ' + (String(o.value) === String(f.value) ? 'selected' : '') + '>' + esc(o.label) + '</option>'; }).join('') + '</select>';
     } else if (f.type === 'number') {
       h += '<input type="number" inputmode="decimal" step="any" ' + (f.allowNegative ? '' : 'min="' + (f.min || 0) + '"') + (f.max ? ' max="' + f.max + '"' : '') + ' id="f_' + f.name + '" name="' + f.name + '" value="' + esc(f.value == null ? '' : f.value) + '" placeholder="' + esc(f.placeholder || '') + '" ' + (f.required ? 'required' : '') + ' ' + (f.autofocus ? 'autofocus' : '') + '>';
@@ -1320,6 +1656,7 @@ function formSheet(cfg) {
     var cancel = $('[data-x="cancel"]', root); if (cancel) cancel.addEventListener('click', closeSheet);
     if (cfg.bind) cfg.bind(root);
     var af = $('[autofocus]', root); if (af) setTimeout(function () { af.focus(); }, 50);
+    cfg.fields.forEach(function (f) { if (f.type === 'category') bindCategoryPicker($('[data-catfield="' + f.name + '"]', form), f); });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = {};
