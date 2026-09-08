@@ -27,7 +27,7 @@ var INCOME = 'Income';
 // Columns are only ever appended (the sheet is hand-edited data); every later column is optional.
 var ITEM_COLS = ['id', 'month', 'name', 'category', 'amount', 'status', 'paid_on', 'source', 'template', 'notes', 'due_on'];
 var MONTH_COLS = ['month', 'salary', 'balance', 'balance_updated', 'expanded', 'reserve', 'left_snapshot'];
-var REC_COLS = ['id', 'name', 'category', 'amount', 'every_n_months', 'start_month', 'end_month', 'active', 'due_day'];
+var REC_COLS = ['id', 'name', 'category', 'amount', 'every_n_months', 'start_month', 'end_month', 'active', 'due_day', 'kind', 'trial_ends'];
 var SETTINGS_COLS = ['key', 'value'];
 
 // ---------------------------------------------------------------------------
@@ -53,6 +53,7 @@ function getBootstrap() {
     today: today,
     currentMonth: today.slice(0, 7),
     categories: ready ? categories_() : DEFAULT_CATEGORIES,
+    categoryColors: ready ? categoryColors_() : {},
     currency: currency,
     reserveMonthly: ready ? reserveRule_() : null,
     configured: !!currency,
@@ -144,7 +145,7 @@ function getMonth(month) {
   month = normMonth_(month);
   requireReady_();
   var m = ensureMonth_(month);
-  var items = itemsFor_(month);
+  var items = joinTemplates_(itemsFor_(month));
   var pending = 0, paid = 0;
   items.forEach(function (it) {
     if (it.status === 'paid') paid += it.amount; else pending += it.amount;
@@ -191,6 +192,7 @@ function getPlan() {
     currentMonth: cur,
     today: todayStr(),
     templates: readRows_(SHEET_RECURRING, REC_COLS).map(stripRow_),
+    categoryColors: categoryColors_(),
     reserveMonthly: reserveRule_(),
     reserveTotal: reserveTotal_(months, cur),
     currentItems: itemsFor_(cur).map(function (it) {
@@ -270,6 +272,53 @@ function getRecurring() {
   return readRows_(SHEET_RECURRING, REC_COLS).map(stripRow_);
 }
 
+/**
+ * Everything the Calendar tab needs for one month: that month's rows plus the neighbouring
+ * months' (for the leading and trailing days of the grid). Months not opened yet are projected.
+ */
+function getCalendar(month) {
+  month = normMonth_(month);
+  requireReady_();
+  var templates = readRows_(SHEET_RECURRING, REC_COLS);
+  var allItems = readRows_(SHEET_ITEMS, ITEM_COLS);
+  var months = readRows_(SHEET_MONTHS, MONTH_COLS);
+  var monthMap = {};
+  months.forEach(function (m) { monthMap[m.month] = m; });
+  var out = [];
+  [-1, 0, 1].forEach(function (d) {
+    var mm = monthAdd_(month, d);
+    monthItems_(mm, templates, allItems, monthMap).forEach(function (it) { it.month = mm; out.push(it); });
+  });
+  return { month: month, today: todayStr(), items: joinTemplates_(out), isOwner: isOwner_() };
+}
+
+/** Actual rows for a month plus, if the month has not been opened, the templates due in it. */
+function monthItems_(month, templates, allItems, monthMap) {
+  var mrow = monthMap[month];
+  var items = allItems.filter(function (it) { return it.month === month; }).map(stripRow_);
+  if (!mrow || mrow.expanded !== 'yes') {
+    var have = {};
+    items.forEach(function (it) { if (it.template) have[it.template] = true; });
+    dueTemplates_(templates, month).forEach(function (t) {
+      if (t.category === INCOME || have[t.id]) return;
+      items.push({ id: '', name: t.name, category: t.category, amount: t.amount, template: t.id, status: 'projected', due_on: dueOnFor_(t, month), source: 'recurring', paid_on: '' });
+    });
+  }
+  return items;
+}
+
+/** Copy kind / cadence from the template onto each row so the client can tag it without another call. */
+function joinTemplates_(items) {
+  var map = {};
+  readRows_(SHEET_RECURRING, REC_COLS).forEach(function (t) { map[t.id] = t; });
+  items.forEach(function (it) {
+    var t = it.template ? map[it.template] : null;
+    it.kind = t ? t.kind : '';
+    it.every = t ? Number(t.every_n_months) || 1 : 0;
+  });
+  return items;
+}
+
 // ---------------------------------------------------------------------------
 // Write APIs (owner only)
 // ---------------------------------------------------------------------------
@@ -294,7 +343,7 @@ function addItem(input) {
       appendRow_(SHEET_RECURRING, REC_COLS, {
         id: templateId, name: name, category: category, amount: amount,
         every_n_months: Number(input.recurring.every_n_months), start_month: month, end_month: '', active: 'yes',
-        due_day: dueDay
+        due_day: dueDay, kind: input.recurring.kind === 'subscription' ? 'subscription' : '', trial_ends: ''
       });
     }
     var item = {
@@ -418,6 +467,25 @@ function setReserveRule(amount) {
   });
 }
 
+/** Add a category (and optionally its colour) to Settings. Returns the new list and colours. */
+function addCategory(name, color) {
+  requireOwner_();
+  requireReady_();
+  name = String(name || '').trim().replace(/,/g, '');
+  if (!name) throw new Error('Name is required');
+  if (name === INCOME) throw new Error('Income is reserved');
+  return withLock_(function () {
+    var cats = categories_();
+    if (cats.indexOf(name) < 0) { cats.push(name); setSetting_('categories', cats.join(', ')); }
+    if (color && /^#[0-9a-fA-F]{6}$/.test(String(color))) {
+      var colors = categoryColors_();
+      colors[name] = String(color);
+      setSetting_('category_colors', Object.keys(colors).map(function (k) { return k + ':' + colors[k]; }).join(', '));
+    }
+    return { categories: cats, categoryColors: categoryColors_() };
+  });
+}
+
 /**
  * Create or update a recurring template.
  * t: {id?, name, category, amount, every_n_months, start_month, end_month?, active?}
@@ -440,6 +508,8 @@ function saveRecurring(t, opts) {
   var start = normMonth_(t.start_month);
   var end = t.end_month ? normMonth_(t.end_month) : '';
   var dueDay = dueDay_(t.due_day);
+  var kind = t.kind === 'subscription' ? 'subscription' : '';
+  var trial = t.trial_ends ? normDate_(t.trial_ends) : '';
 
   return withLock_(function () {
     var row = t.id ? findRow_(SHEET_RECURRING, REC_COLS, t.id) : null;
@@ -448,7 +518,7 @@ function saveRecurring(t, opts) {
     row.name = name; row.category = category; row.amount = amount;
     row.every_n_months = every; row.start_month = start; row.end_month = end;
     row.active = t.active === 'no' ? 'no' : 'yes';
-    row.due_day = dueDay;
+    row.due_day = dueDay; row.kind = kind; row.trial_ends = trial;
     if (isNew) appendRow_(SHEET_RECURRING, REC_COLS, row); else writeRow_(SHEET_RECURRING, REC_COLS, row);
 
     var cur = todayStr().slice(0, 7);
@@ -567,7 +637,13 @@ function dueTemplates_(templates, month) {
     if (!t.start_month || month < t.start_month) return false;
     if (t.end_month && month > t.end_month) return false;
     var every = Math.max(1, Number(t.every_n_months) || 1);
-    return monthDiff_(t.start_month, month) % every === 0;
+    if (monthDiff_(t.start_month, month) % every !== 0) return false;
+    // A free trial: no charge until the trial has ended.
+    if (t.trial_ends) {
+      var when = dueOnFor_(t, month) || (month + '-' + lastDayOfMonth_(month));
+      if (when <= t.trial_ends) return false;
+    }
+    return true;
   });
 }
 
@@ -624,6 +700,16 @@ function reserveRule_() {
   return v === '' ? null : num_(v);
 }
 
+/** Optional per-category colours from Settings ("Name:#hex, Name:#hex"). */
+function categoryColors_() {
+  var out = {};
+  String(setting_('category_colors', '') || '').split(',').forEach(function (pair) {
+    var i = pair.lastIndexOf(':');
+    if (i > 0) { var k = pair.slice(0, i).trim(), v = pair.slice(i + 1).trim(); if (k && /^#[0-9a-fA-F]{6}$/.test(v)) out[k] = v; }
+  });
+  return out;
+}
+
 /** Expense categories, in display order. Edit the "categories" row in Settings to change them. */
 function categories_() {
   var raw = String(setting_('categories', '') || '');
@@ -669,7 +755,7 @@ function clean_(col, v) {
   if (col === 'month' || col === 'start_month' || col === 'end_month') {
     return v === '' ? '' : normMonth_(v);
   }
-  if (col === 'paid_on' || col === 'balance_updated' || col === 'due_on') {
+  if (col === 'paid_on' || col === 'balance_updated' || col === 'due_on' || col === 'trial_ends') {
     return v instanceof Date ? fmtDate_(v) : String(v).trim();
   }
   if (col === 'due_day' || col === 'left_snapshot') return v === '' ? '' : num_(v);
@@ -756,6 +842,14 @@ function normMonth_(v) {
   var mm = Number(m[2]);
   if (mm < 1 || mm > 12) throw new Error('Bad month: ' + s);
   return m[1] + '-' + (mm < 10 ? '0' : '') + mm;
+}
+
+/** YYYY-MM-DD from a string or Date; throws on anything else. */
+function normDate_(v) {
+  if (v instanceof Date) return fmtDate_(v);
+  var m = String(v || '').trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!m) throw new Error('Bad date: ' + v);
+  return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
 }
 
 /** 1–31 or '' (blank / invalid). */

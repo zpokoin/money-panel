@@ -179,9 +179,48 @@ assert.strictEqual(hist[1].month, cur);
 assert.strictEqual(hist[1].left, g.getMonth(cur).left);
 console.log('history ok');
 
+// Subscriptions: kind + trial. A trial does not charge until it has ended.
+g.saveRecurring({ name: 'Netflix', category: 'Other', amount: 56, every_n_months: 1, start_month: cur, due_day: 12, kind: 'subscription' });
+var trialEnd = g.monthAdd_(cur, 1) + '-05';
+g.saveRecurring({ name: 'Notion', category: 'Other', amount: 32, every_n_months: 1, start_month: cur, due_day: 20, kind: 'subscription', trial_ends: trialEnd });
+var recs = g.getRecurring();
+assert.strictEqual(byName(recs, 'Netflix').kind, 'subscription');
+assert.strictEqual(byName(recs, 'Notion').trial_ends, trialEnd);
+var mNow = g.getMonth(cur);
+assert.ok(byName(mNow.items, 'Netflix'), 'subscription lands as a bill');
+assert.strictEqual(byName(mNow.items, 'Netflix').kind, 'subscription', 'rows carry the template kind');
+assert.ok(!byName(mNow.items, 'Notion'), 'no charge during the trial');
+var mNext = g.getMonth(g.monthAdd_(cur, 1));
+assert.ok(byName(mNext.items, 'Notion'), 'first charge after the trial ends');
+var subItem = g.addItem({ month: cur, name: 'Spotify', category: 'Other', amount: 24, due_day: 15, recurring: { every_n_months: 1, kind: 'subscription' } });
+assert.strictEqual(byName(g.getRecurring(), 'Spotify').kind, 'subscription');
+console.log('subscriptions ok');
+
+// Calendar: three months of rows, projected where not opened.
+var cal = g.getCalendar(cur);
+assert.strictEqual(cal.month, cur);
+var calMonths = {}; cal.items.forEach(function (i) { calMonths[i.month] = true; });
+assert.ok(calMonths[cur] && calMonths[g.monthAdd_(cur, 1)], 'current and next month present');
+assert.ok(cal.items.every(function (i) { return [g.monthAdd_(cur, -1), cur, g.monthAdd_(cur, 1)].indexOf(i.month) >= 0; }), 'only the three months');
+assert.ok(cal.items.some(function (i) { return i.month === cur && i.name === 'Electricity' && i.status === 'paid'; }));
+var calFar = g.getCalendar(g.monthAdd_(cur, 4));
+assert.ok(calFar.items.some(function (i) { return i.status === 'projected' && i.due_on; }), 'unopened months are projected with due dates');
+assert.strictEqual(byName(calFar.items.filter(function (i) { return i.month === g.monthAdd_(cur, 4); }), 'Netflix').kind, 'subscription');
+console.log('calendar ok');
+
+// Add a category from the app.
+var added = g.addCategory('Health', '#F97316');
+assert.ok(added.categories.indexOf('Health') >= 0);
+assert.strictEqual(added.categoryColors.Health, '#F97316');
+assert.strictEqual(g.getBootstrap().categoryColors.Health, '#F97316');
+assert.strictEqual(g.addCategory('Health').categories.filter(function (c) { return c === 'Health'; }).length, 1, 'no duplicates');
+assert.throws(function () { g.addCategory('Income'); }, /reserved/);
+console.log('add category ok');
+
 // Custom categories via Settings.
 g.setSetting_('categories', 'Home, Utilities, Fun');
 assert.strictEqual(g.getBootstrap().categories.join(','), 'Home,Utilities,Fun');
+g.addCategory('Health');
 assert.strictEqual(g.addItem({ month: cur, name: 'Cinema', category: 'Fun', amount: 20 }).category, 'Fun');
 console.log('custom categories ok');
 
@@ -191,6 +230,7 @@ msh.rows[0] = msh.rows[0].slice(0, 5); ish.rows[0] = ish.rows[0].slice(0, 10); r
 g.getBootstrap();
 assert.strictEqual(msh.rows[0][5], 'reserve'); assert.strictEqual(msh.rows[0][6], 'left_snapshot');
 assert.strictEqual(ish.rows[0][10], 'due_on'); assert.strictEqual(rsh.rows[0][8], 'due_day');
+assert.strictEqual(rsh.rows[0][9], 'kind'); assert.strictEqual(rsh.rows[0][10], 'trial_ends');
 console.log('column migration ok');
 
 // Viewer cannot write, can read.

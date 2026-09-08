@@ -27,6 +27,12 @@
      ['Car insurance', 'Bills', 420, 6, 28]].forEach(function (t) {
       saveRecurring({ name: t[0], category: t[1], amount: t[2], every_n_months: t[3], start_month: cur, due_day: t[4] });
     });
+    addCategory('Entertainment', '#8B5CF6'); addCategory('Health', '#10B981');
+    [['Netflix', 'Entertainment', 56, 1, Math.min(28, dom + 4), ''], ['Spotify', 'Entertainment', 24, 1, Math.min(28, dom + 7), ''],
+     ['iCloud', 'Bills', 12, 1, Math.min(28, dom + 13), ''], ['Gym', 'Health', 150, 1, 1, ''],
+     ['Adobe', 'Other', 240, 12, 3, ''], ['Notion', 'Other', 32, 1, Math.min(28, dom + 20), cur + '-' + ('0' + Math.min(28, dom + 20)).slice(-2)]].forEach(function (t) {
+      saveRecurring({ name: t[0], category: t[1], amount: t[2], every_n_months: t[3], start_month: t[3] === 12 ? monthAdd_(cur, 6) : cur, due_day: t[4], kind: 'subscription', trial_ends: t[5] });
+    });
     addItem({ month: cur, name: 'Car service', category: 'Other', amount: 350, due_day: Math.min(28, dom + 17) });
     addItem({ month: cur, name: 'Birthday gift', category: 'Other', amount: 80, notes: 'On the 20th', due_day: Math.min(28, dom + 12) });
     addItem({ month: monthAdd_(cur, 1), name: 'Fridge', category: 'Planned', amount: 900 });
