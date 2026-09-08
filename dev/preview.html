@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Money Panel (local preview)</title>
+<script src="gas-shim.js"></script>
+<script>
+// Local preview: runs the real Code.gs against the in-memory shim, mocks google.script.run,
+// then injects Index.html into this document. ?viewer=1 simulates a non-owner, ?fresh=1 shows first-run setup.
+(async function () {
+  var code = await (await fetch('../Code.gs', { cache: 'no-store' })).text();
+  (0, eval)(code);
+  // Capture server functions now; Index.html defines its own globals later.
+  var server = {};
+  code.replace(/^function\s+([A-Za-z_]\w*)\s*\(/gm, function (_, n) { server[n] = window[n]; return _; });
+  setupSheets();
+  // Sample data so the screens are not empty (skip with ?fresh=1 to see the welcome flow).
+  var params0 = new URLSearchParams(location.search);
+  if (!params0.get('fresh')) {
+    completeSetup({ currency: 'USD', salary: 5200, balance: 5200 });
+    var cur = getBootstrap().currentMonth;
+    [['Rent', 'Rent', 1500, 1], ['Electricity', 'Bills', 120, 1], ['Water', 'Bills', 40, 1], ['Internet', 'Bills', 60, 1],
+     ['Phone', 'Bills', 45, 1], ['Insurance', 'Bills', 90, 1], ['Car insurance', 'Bills', 420, 6]].forEach(function (t) {
+      saveRecurring({ name: t[0], category: t[1], amount: t[2], every_n_months: t[3], start_month: cur });
+    });
+    addItem({ month: cur, name: 'Car service', category: 'Other', amount: 350 });
+    addItem({ month: cur, name: 'Birthday gift', category: 'Other', amount: 80, notes: 'On the 20th' });
+    addItem({ month: monthAdd_(cur, 1), name: 'Fridge', category: 'Planned', amount: 900 });
+    addItem({ month: monthAdd_(cur, 2), name: 'Flights', category: 'Travel', amount: 700 });
+    addItem({ month: monthAdd_(cur, 2), name: 'Hotel', category: 'Travel', amount: 600 });
+    addItem({ month: monthAdd_(cur, 4), name: 'Annual membership', category: 'Other', amount: 200 });
+    var m = getMonth(cur);
+    markPaid(m.items.filter(function (i) { return i.name === 'Phone'; })[0].id, true);
+  }
+  var params = new URLSearchParams(location.search);
+  if (params.get('viewer')) __gasShim.setViewer('viewer@example.com');
+  // ?delay=0 answers on a microtask (useful for scripted tests in a hidden tab, where timers are frozen).
+  function later(fn) { if (params.get('delay') === '0') Promise.resolve().then(fn); else setTimeout(fn, 120 + Math.random() * 200); }
+
+  window.google = { script: { run: (function () {
+    function runner() {
+      var ok = function () {}, fail = function (e) { console.error(e); };
+      var proxy = new Proxy({}, {
+        get: function (_, name) {
+          if (name === 'withSuccessHandler') return function (f) { ok = f; return proxy; };
+          if (name === 'withFailureHandler') return function (f) { fail = f; return proxy; };
+          return function () {
+            var args = [].slice.call(arguments);
+            later(function () {
+              try { var r = server[name].apply(null, args); ok(r === undefined ? undefined : JSON.parse(JSON.stringify(r))); }
+              catch (e) { fail(e); }
+            });
+          };
+        }
+      });
+      return proxy;
+    }
+    return new Proxy({}, { get: function (_, name) { return runner()[name]; } });
+  })() } };
+
+  var html = await (await fetch('../Index.html', { cache: 'no-store' })).text();
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.head.querySelectorAll('style,link,title').forEach(function (n) { document.head.appendChild(n.cloneNode(true)); });
+  document.body.innerHTML = doc.body.innerHTML;
+  doc.querySelectorAll('script').forEach(function (s) {
+    var el = document.createElement('script'); el.textContent = s.textContent; document.body.appendChild(el);
+  });
+})();
+</script>
+</head>
+<body></body>
+</html>
