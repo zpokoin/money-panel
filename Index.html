@@ -180,7 +180,7 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
 .sum-amt .cur{font-size:15px;vertical-align:5px}
 .sum-note{font-size:13px;color:var(--muted)}
 .sum-note b{color:var(--text);font-weight:600}
-.linechart{width:100%;height:auto;display:block;margin-top:8px}
+.linechart{width:100%;height:auto;display:block;margin-top:8px;max-width:100%}
 .mrow{display:flex;align-items:center;gap:10px;padding:14px 16px;border-top:1px solid var(--hairline);width:100%}
 .mrow:first-child{border-top:0}
 .mrow-main{flex:1;min-width:0}
@@ -300,6 +300,7 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
   .rail .note{font-size:11.5px;color:var(--faint);margin:8px 4px 0}
   .content{flex:1;min-width:0}
   .page{max-width:1180px;margin:0 auto;padding:22px 24px 40px;min-height:0}
+  .page.narrow{max-width:760px}
   .tabbar,.fab{display:none!important}
   .actionbar{left:248px}
   .hdr{padding:0 0 18px}
@@ -501,6 +502,7 @@ function onResize() {
   resizeTimer = setTimeout(function () {
     var d = isDesktop();
     if (wasDesktop !== null && d !== wasDesktop) { if (d && S.tab === 'month' && !S.data.forecast) loadForecastForMonth(); else render(); }
+    else if (S.tab === 'ahead') render();
     wasDesktop = d;
   }, 120);
 }
@@ -590,6 +592,7 @@ function invalidate() { S.data.forecast = null; S.data.plan = null; }
 function skeleton() { return '<div class="hdr"><div><div class="hdr-title" style="opacity:.3">&nbsp;</div></div></div><div class="card" style="height:150px;opacity:.5"></div><div class="card" style="height:220px;opacity:.35"></div>'; }
 function render() {
   document.body.classList.toggle('selecting', S.select.on);
+  $('#view').classList.toggle('narrow', S.tab !== 'month');
   if (S.tab === 'month') renderMonth();
   else if (S.tab === 'ahead') renderAhead();
   else renderPlan();
@@ -1158,8 +1161,12 @@ function monthDetail(m, isCur) {
   if (m.reserve) note += ' · ' + bare(m.reserve) + ' set aside';
   return h + '<div class="mnote">' + esc(note) + '</div></div>';
 }
+function chartWidth() {
+  var v = $('#view');
+  return Math.max(280, (v ? v.clientWidth : 322) - 38);   // card padding 18px each side + 1px borders
+}
 function lineChart(fc) {
-  var W = 322, H = 132, L = 12, R = 8, base = 104, top = 24;
+  var W = chartWidth(), H = W > 700 ? 200 : 132, L = 12, R = 8, base = H - 28, top = 24;
   var vals = fc.map(function (m) { return m.running; });
   var mx = Math.max.apply(null, vals.map(Math.abs)) || 1;
   var mn = Math.min(0, Math.min.apply(null, vals));
