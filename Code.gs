@@ -24,9 +24,10 @@ var OWNER_EMAIL = '';
 var DEFAULT_CATEGORIES = ['Rent', 'Bills', 'School', 'Travel', 'Other', 'Planned'];
 var INCOME = 'Income';
 
-var ITEM_COLS = ['id', 'month', 'name', 'category', 'amount', 'status', 'paid_on', 'source', 'template', 'notes'];
-var MONTH_COLS = ['month', 'salary', 'balance', 'balance_updated', 'expanded', 'reserve'];
-var REC_COLS = ['id', 'name', 'category', 'amount', 'every_n_months', 'start_month', 'end_month', 'active'];
+// Columns are only ever appended (the sheet is hand-edited data); every later column is optional.
+var ITEM_COLS = ['id', 'month', 'name', 'category', 'amount', 'status', 'paid_on', 'source', 'template', 'notes', 'due_on'];
+var MONTH_COLS = ['month', 'salary', 'balance', 'balance_updated', 'expanded', 'reserve', 'left_snapshot'];
+var REC_COLS = ['id', 'name', 'category', 'amount', 'every_n_months', 'start_month', 'end_month', 'active', 'due_day'];
 var SETTINGS_COLS = ['key', 'value'];
 
 // ---------------------------------------------------------------------------
@@ -44,7 +45,7 @@ function getBootstrap() {
   var owner = isOwner_();
   var ready = !!ss_().getSheetByName(SHEET_ITEMS) && !!ss_().getSheetByName(SHEET_SETTINGS);
   if (!ready && owner) { setupSheets(); ready = true; }
-  if (ready) ensureColumns_(SHEET_MONTHS, MONTH_COLS);
+  if (ready) migrateColumns_();
   var currency = ready ? setting_('currency', '') : '';
   return {
     isOwner: owner,
@@ -53,6 +54,7 @@ function getBootstrap() {
     currentMonth: today.slice(0, 7),
     categories: ready ? categories_() : DEFAULT_CATEGORIES,
     currency: currency,
+    reserveMonthly: ready ? reserveRule_() : null,
     configured: !!currency,
     ready: ready
   };
@@ -94,12 +96,18 @@ function completeSetup(input) {
 // ---------------------------------------------------------------------------
 
 function setupSheets() {
-  ensureSheet_(SHEET_ITEMS, ITEM_COLS, { month: '@', paid_on: '@' });
+  ensureSheet_(SHEET_ITEMS, ITEM_COLS, { month: '@', paid_on: '@', due_on: '@' });
   ensureSheet_(SHEET_MONTHS, MONTH_COLS, { month: '@', balance_updated: '@' });
-  ensureColumns_(SHEET_MONTHS, MONTH_COLS);
   ensureSheet_(SHEET_RECURRING, REC_COLS, { start_month: '@', end_month: '@' });
   ensureSheet_(SHEET_SETTINGS, SETTINGS_COLS, {});
+  migrateColumns_();
   return 'ok';
+}
+
+function migrateColumns_() {
+  ensureColumns_(SHEET_ITEMS, ITEM_COLS);
+  ensureColumns_(SHEET_MONTHS, MONTH_COLS);
+  ensureColumns_(SHEET_RECURRING, REC_COLS);
 }
 
 /** Add any header columns that are missing (columns are only ever appended at the end). */
@@ -142,18 +150,52 @@ function getMonth(month) {
     if (it.status === 'paid') paid += it.amount; else pending += it.amount;
   });
   var balance = m.balance === '' ? null : Number(m.balance);
-  var reserveTotal = reserveTotal_(readRows_(SHEET_MONTHS, MONTH_COLS), month);
+  var months = readRows_(SHEET_MONTHS, MONTH_COLS);
+  var reserveTotal = reserveTotal_(months, month);
+  var left = balance === null ? null : balance - pending - reserveTotal;
+  // Remember what safe-to-spend was, so later months can compare against real history.
+  if (left !== null && isOwner_() && Number(m.left_snapshot) !== left) {
+    m.left_snapshot = left;
+    writeRow_(SHEET_MONTHS, MONTH_COLS, m);
+  }
+  var history = [];
+  for (var h = 2; h >= 1; h--) {
+    var pm = monthAdd_(month, -h), pr = null;
+    for (var k = 0; k < months.length; k++) if (months[k].month === pm) pr = months[k];
+    if (pr && pr.left_snapshot !== '') history.push({ month: pm, left: Number(pr.left_snapshot) });
+  }
+  if (left !== null) history.push({ month: month, left: left });
   return {
     month: month,
+    today: todayStr(),
     salary: m.salary === '' ? null : Number(m.salary),
     balance: balance,
     balance_updated: m.balance_updated || '',
     reserve: m.reserve === '' ? 0 : Number(m.reserve),
     reserveTotal: reserveTotal,
+    reserveMonthly: reserveRule_(),
     items: items,
     totals: { pending: pending, paid: paid },
-    left: balance === null ? null : balance - pending - reserveTotal,
+    left: left,
+    history: history,
     isOwner: isOwner_()
+  };
+}
+
+/** Templates plus everything the Plan screen shows: reserve rule, kept so far, this month's rows. */
+function getPlan() {
+  requireReady_();
+  var cur = todayStr().slice(0, 7);
+  var months = readRows_(SHEET_MONTHS, MONTH_COLS);
+  return {
+    currentMonth: cur,
+    today: todayStr(),
+    templates: readRows_(SHEET_RECURRING, REC_COLS).map(stripRow_),
+    reserveMonthly: reserveRule_(),
+    reserveTotal: reserveTotal_(months, cur),
+    currentItems: itemsFor_(cur).map(function (it) {
+      return { id: it.id, template: it.template, status: it.status, due_on: it.due_on, name: it.name };
+    })
   };
 }
 
@@ -180,11 +222,12 @@ function getForecast(fromMonth, count) {
       items.forEach(function (it) { if (it.template) have[it.template] = true; });
       dueTemplates_(templates, month).forEach(function (t) {
         if (t.category === INCOME || have[t.id]) return;
-        projected.push({ name: t.name, category: t.category, amount: t.amount, template: t.id, status: 'projected' });
+        projected.push({ name: t.name, category: t.category, amount: t.amount, template: t.id, status: 'projected', due_on: dueOnFor_(t, month) });
       });
     }
     var salary = mrow && mrow.salary !== '' ? Number(mrow.salary) : salaryFromTemplates_(templates, month, months);
-    var reserve = mrow && mrow.reserve !== '' ? Number(mrow.reserve) : (i === 0 ? 0 : assumedReserve_(months, month));
+    var rule = reserveRule_();
+    var reserve = mrow && mrow.reserve !== '' ? Number(mrow.reserve) : (i === 0 ? 0 : (rule !== null ? rule : assumedReserve_(months, month)));
     var byCategory = {};
     cats.forEach(function (c) { byCategory[c] = 0; });
     var expenses = 0, pending = 0, paid = 0;
@@ -206,7 +249,7 @@ function getForecast(fromMonth, count) {
       byCategory: byCategory, net: net, running: running,
       expanded: !!(mrow && mrow.expanded === 'yes'),
       items: items.concat(projected).map(function (it) {
-        return { id: it.id || '', name: it.name, category: it.category, amount: it.amount, status: it.status, template: it.template || '' };
+        return { id: it.id || '', name: it.name, category: it.category, amount: it.amount, status: it.status, template: it.template || '', due_on: it.due_on || '', source: it.source || '' };
       })
     });
   }
@@ -245,17 +288,20 @@ function addItem(input) {
   return withLock_(function () {
     ensureMonthRow_(month);
     var templateId = '';
+    var dueDay = dueDay_(input.due_day);
     if (input.recurring && Number(input.recurring.every_n_months) > 0) {
       templateId = uuid_();
       appendRow_(SHEET_RECURRING, REC_COLS, {
         id: templateId, name: name, category: category, amount: amount,
-        every_n_months: Number(input.recurring.every_n_months), start_month: month, end_month: '', active: 'yes'
+        every_n_months: Number(input.recurring.every_n_months), start_month: month, end_month: '', active: 'yes',
+        due_day: dueDay
       });
     }
     var item = {
       id: uuid_(), month: month, name: name, category: category, amount: amount,
       status: 'pending', paid_on: '', source: templateId ? 'recurring' : 'manual',
-      template: templateId, notes: String(input.notes || '')
+      template: templateId, notes: String(input.notes || ''),
+      due_on: dueDay === '' ? '' : dueOnFor_({ due_day: dueDay }, month)
     };
     appendRow_(SHEET_ITEMS, ITEM_COLS, item);
     if (templateId) materializeTemplate_(findRow_(SHEET_RECURRING, REC_COLS, templateId), month);
@@ -271,7 +317,11 @@ function updateItem(id, patch) {
     if (patch.name !== undefined) row.name = String(patch.name).trim() || row.name;
     if (patch.category !== undefined && categories_().indexOf(patch.category) >= 0) row.category = patch.category;
     if (patch.amount !== undefined) { var a = num_(patch.amount); if (a > 0) row.amount = a; }
-    if (patch.month !== undefined) { row.month = normMonth_(patch.month); ensureMonthRow_(row.month); }
+    if (patch.month !== undefined) {
+      row.month = normMonth_(patch.month); ensureMonthRow_(row.month);
+      if (row.due_on) row.due_on = dueOnFor_({ due_day: Number(row.due_on.slice(8, 10)) }, row.month);
+    }
+    if (patch.due_day !== undefined) { var dd = dueDay_(patch.due_day); row.due_on = dd === '' ? '' : dueOnFor_({ due_day: dd }, row.month); }
     if (patch.notes !== undefined) row.notes = String(patch.notes);
     writeRow_(SHEET_ITEMS, ITEM_COLS, row);
     return stripRow_(row);
@@ -287,6 +337,29 @@ function markPaid(id, paid) {
     row.paid_on = paid ? todayStr() : '';
     writeRow_(SHEET_ITEMS, ITEM_COLS, row);
     return stripRow_(row);
+  });
+}
+
+/** Tick (or untick) several bills in one lock and one pass. Returns the recomputed month of the first id. */
+function markPaidBatch(ids, paid) {
+  requireOwner_();
+  ids = (ids || []).map(String);
+  if (!ids.length) throw new Error('Nothing selected');
+  return withLock_(function () {
+    var rows = readRows_(SHEET_ITEMS, ITEM_COLS);
+    var month = null, n = 0, today = todayStr();
+    rows.forEach(function (row) {
+      if (ids.indexOf(row.id) < 0) return;
+      row.status = paid ? 'paid' : 'pending';
+      row.paid_on = paid ? today : '';
+      writeRow_(SHEET_ITEMS, ITEM_COLS, row);
+      if (!month) month = row.month;
+      n++;
+    });
+    if (!n) throw new Error('Items not found');
+    var out = getMonth(month);
+    out.changed = n;
+    return out;
   });
 }
 
@@ -335,6 +408,16 @@ function setReserve(month, amount) {
   });
 }
 
+/** The standing monthly set-aside shown on the Plan screen and assumed by the forecast. Blank clears it. */
+function setReserveRule(amount) {
+  requireOwner_();
+  requireReady_();
+  return withLock_(function () {
+    setSetting_('reserve_monthly', amount === '' || amount === null || amount === undefined ? '' : num_(amount));
+    return reserveRule_();
+  });
+}
+
 /**
  * Create or update a recurring template.
  * t: {id?, name, category, amount, every_n_months, start_month, end_month?, active?}
@@ -356,6 +439,7 @@ function saveRecurring(t, opts) {
   var category = t.category === INCOME || cats.indexOf(t.category) >= 0 ? t.category : cats[0];
   var start = normMonth_(t.start_month);
   var end = t.end_month ? normMonth_(t.end_month) : '';
+  var dueDay = dueDay_(t.due_day);
 
   return withLock_(function () {
     var row = t.id ? findRow_(SHEET_RECURRING, REC_COLS, t.id) : null;
@@ -364,6 +448,7 @@ function saveRecurring(t, opts) {
     row.name = name; row.category = category; row.amount = amount;
     row.every_n_months = every; row.start_month = start; row.end_month = end;
     row.active = t.active === 'no' ? 'no' : 'yes';
+    row.due_day = dueDay;
     if (isNew) appendRow_(SHEET_RECURRING, REC_COLS, row); else writeRow_(SHEET_RECURRING, REC_COLS, row);
 
     var cur = todayStr().slice(0, 7);
@@ -371,6 +456,7 @@ function saveRecurring(t, opts) {
       readRows_(SHEET_ITEMS, ITEM_COLS).forEach(function (it) {
         if (it.template === row.id && it.status !== 'paid' && it.month >= cur) {
           it.name = name; it.category = category; it.amount = amount;
+          it.due_on = dueOnFor_(row, it.month);
           writeRow_(SHEET_ITEMS, ITEM_COLS, it);
         }
       });
@@ -440,7 +526,7 @@ function materializeTemplate_(t, fromMonth) {
     if (dueTemplates_([t], m.month).length === 0) return;
     appendRow_(SHEET_ITEMS, ITEM_COLS, {
       id: uuid_(), month: m.month, name: t.name, category: t.category, amount: t.amount,
-      status: 'pending', paid_on: '', source: 'recurring', template: t.id, notes: ''
+      status: 'pending', paid_on: '', source: 'recurring', template: t.id, notes: '', due_on: dueOnFor_(t, m.month)
     });
     added++;
   });
@@ -465,7 +551,7 @@ function ensureMonth_(month) {
       if (t.category === INCOME || existing[t.id]) return;
       appendRow_(SHEET_ITEMS, ITEM_COLS, {
         id: uuid_(), month: month, name: t.name, category: t.category, amount: t.amount,
-        status: 'pending', paid_on: '', source: 'recurring', template: t.id, notes: ''
+        status: 'pending', paid_on: '', source: 'recurring', template: t.id, notes: '', due_on: dueOnFor_(t, month)
       });
     });
     if (m.salary === '') m.salary = salaryFromTemplates_(templates, month, months);
@@ -532,6 +618,12 @@ function setSetting_(key, value) {
   appendRow_(SHEET_SETTINGS, SETTINGS_COLS, { key: key, value: value });
 }
 
+/** Standing monthly set-aside from Settings, or null when not set. */
+function reserveRule_() {
+  var v = setting_('reserve_monthly', '');
+  return v === '' ? null : num_(v);
+}
+
 /** Expense categories, in display order. Edit the "categories" row in Settings to change them. */
 function categories_() {
   var raw = String(setting_('categories', '') || '');
@@ -577,9 +669,10 @@ function clean_(col, v) {
   if (col === 'month' || col === 'start_month' || col === 'end_month') {
     return v === '' ? '' : normMonth_(v);
   }
-  if (col === 'paid_on' || col === 'balance_updated') {
-    return v instanceof Date ? fmtDate_(v) : String(v);
+  if (col === 'paid_on' || col === 'balance_updated' || col === 'due_on') {
+    return v instanceof Date ? fmtDate_(v) : String(v).trim();
   }
+  if (col === 'due_day' || col === 'left_snapshot') return v === '' ? '' : num_(v);
   return String(v).trim();
 }
 
@@ -663,6 +756,26 @@ function normMonth_(v) {
   var mm = Number(m[2]);
   if (mm < 1 || mm > 12) throw new Error('Bad month: ' + s);
   return m[1] + '-' + (mm < 10 ? '0' : '') + mm;
+}
+
+/** 1–31 or '' (blank / invalid). */
+function dueDay_(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  var n = Math.round(num_(v));
+  return n >= 1 && n <= 31 ? n : '';
+}
+
+function lastDayOfMonth_(month) {
+  var p = month.split('-');
+  return new Date(Number(p[0]), Number(p[1]), 0).getDate();
+}
+
+/** YYYY-MM-DD for a template's due day inside a month (clamped to the month's length), or ''. */
+function dueOnFor_(t, month) {
+  var d = dueDay_(t && t.due_day);
+  if (d === '') return '';
+  d = Math.min(d, lastDayOfMonth_(month));
+  return month + '-' + (d < 10 ? '0' : '') + d;
 }
 
 function monthAdd_(month, n) {

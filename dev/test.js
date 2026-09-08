@@ -122,17 +122,75 @@ g.setReserve(cur, -100);
 assert.strictEqual(g.getMonth(cur).reserveTotal, 200);
 console.log('balance / salary / reserve ok');
 
+// Due dates: template due_day materialises as due_on, clamped to the month length.
+var feb = '2027-02';
+var rentT = byName(g.getRecurring(), 'Rent');
+g.saveRecurring({ id: rentT.id, name: 'Rent', category: 'Rent', amount: 1500, every_n_months: 2, start_month: rentT.start_month, due_day: 31 }, { applyToPending: true });
+assert.strictEqual(byName(g.getMonth(cur).items, 'Rent').due_on, cur + '-30', 'pending row picks up the due day (Sep has 30 days)');
+var novRent = byName(g.getMonth(g.monthAdd_(cur, 2)).items, 'Rent');
+assert.strictEqual(novRent.due_on, g.monthAdd_(cur, 2) + '-30');
+var gift = g.addItem({ month: cur, name: 'Gift', category: 'Other', amount: 50, due_day: 20 });
+assert.strictEqual(gift.due_on, cur + '-20');
+g.updateItem(gift.id, { month: feb });
+assert.strictEqual(byName(g.getMonth(feb).items, 'Gift').due_on, feb + '-20', 'moving keeps the day');
+g.updateItem(gift.id, { due_day: 31 });
+assert.strictEqual(byName(g.getMonth(feb).items, 'Gift').due_on, feb + '-28', 'clamped to Feb');
+g.updateItem(gift.id, { due_day: '' });
+assert.strictEqual(byName(g.getMonth(feb).items, 'Gift').due_on, '', 'blank clears');
+assert.strictEqual(byName(g.getForecast(cur, 3)[2].items, 'Rent').due_on, g.monthAdd_(cur, 2) + '-30', 'projected rows carry due_on');
+console.log('due dates ok');
+
+// Batch tick: one call, all rows, returned month recomputed.
+var mb = g.getMonth(cur);
+var idsToPay = ['Internet', 'Insurance', 'Streaming'].map(function (n) { return byName(mb.items, n).id; });
+var after = g.markPaidBatch(idsToPay, true);
+assert.strictEqual(after.changed, 3);
+assert.strictEqual(after.totals.paid, mb.totals.paid + 60 + 90 + 12);
+assert.strictEqual(after.left, mb.left + 60 + 90 + 12);
+var undone = g.markPaidBatch(idsToPay, false);
+assert.strictEqual(undone.left, mb.left);
+assert.throws(function () { g.markPaidBatch([], true); }, /Nothing selected/);
+console.log('batch tick ok');
+
+// Reserve rule: stored in Settings, used by the forecast for months without an explicit reserve.
+assert.strictEqual(g.getBootstrap().reserveMonthly, null);
+assert.strictEqual(g.setReserveRule(250), 250);
+assert.strictEqual(g.getBootstrap().reserveMonthly, 250);
+var frr = g.getForecast(cur, 3);
+assert.strictEqual(frr[1].reserve, 250, 'rule beats the carry-forward guess');
+assert.strictEqual(frr[0].reserve, g.getMonth(cur).reserve, 'current month keeps what was actually set aside');
+var plan = g.getPlan();
+assert.strictEqual(plan.reserveMonthly, 250);
+assert.strictEqual(plan.reserveTotal, g.getMonth(cur).reserveTotal);
+assert.ok(plan.templates.length > 5 && plan.currentItems.length > 5);
+assert.strictEqual(byName(plan.templates, 'Rent').due_day, 31);
+g.setReserveRule('');
+assert.strictEqual(g.getBootstrap().reserveMonthly, null);
+console.log('reserve rule ok');
+
+// Safe-to-spend history: snapshot written on read, previous months surface in history.
+var prevM = g.monthAdd_(cur, -1);
+g.setBalance(prevM, 3000);
+var hist = g.getMonth(cur).history;
+assert.strictEqual(hist.length, 2);
+assert.strictEqual(hist[0].month, prevM);
+assert.strictEqual(hist[0].left, 3000 - g.getMonth(prevM).totals.pending - g.getMonth(prevM).reserveTotal);
+assert.strictEqual(hist[1].month, cur);
+assert.strictEqual(hist[1].left, g.getMonth(cur).left);
+console.log('history ok');
+
 // Custom categories via Settings.
 g.setSetting_('categories', 'Home, Utilities, Fun');
 assert.strictEqual(g.getBootstrap().categories.join(','), 'Home,Utilities,Fun');
 assert.strictEqual(g.addItem({ month: cur, name: 'Cinema', category: 'Fun', amount: 20 }).category, 'Fun');
 console.log('custom categories ok');
 
-// Older Months tab without the reserve column gets it added.
-var msh = g.__gasShim.book.sheets.Months;
-msh.rows[0] = msh.rows[0].slice(0, 5);
+// Older tabs without the newer columns get them appended (never reordered).
+var msh = g.__gasShim.book.sheets.Months, ish = g.__gasShim.book.sheets.Items, rsh = g.__gasShim.book.sheets.Recurring;
+msh.rows[0] = msh.rows[0].slice(0, 5); ish.rows[0] = ish.rows[0].slice(0, 10); rsh.rows[0] = rsh.rows[0].slice(0, 8);
 g.getBootstrap();
-assert.strictEqual(msh.rows[0][5], 'reserve');
+assert.strictEqual(msh.rows[0][5], 'reserve'); assert.strictEqual(msh.rows[0][6], 'left_snapshot');
+assert.strictEqual(ish.rows[0][10], 'due_on'); assert.strictEqual(rsh.rows[0][8], 'due_day');
 console.log('column migration ok');
 
 // Viewer cannot write, can read.
