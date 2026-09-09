@@ -361,6 +361,16 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
 .toast button{color:#86EFAC;font-weight:700;min-height:32px}
 .setup{padding:24px;text-align:center}
 
+/* ---- month picker ---- */
+.ypick{display:flex;align-items:center;gap:8px;margin:4px 0 12px}
+.ypick .yr{flex:1;text-align:center;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mgrid button{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:12px;background:var(--bg);font-size:15px;font-weight:600}
+.mgrid button:hover{background:var(--border)}
+.mgrid button.on{background:var(--accent);color:#fff}
+.mgrid button i{position:absolute;right:8px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--good-strong)}
+.mgrid button.on i{background:#fff}
+
 /* ---- ≥760: wider column ---- */
 @media(min-width:760px){
   .page{max-width:640px}
@@ -749,15 +759,22 @@ function bindHeader() {
     load();
   }); });
 }
-function monthPicker() {
-  var opts = monthOptions(S.month);
-  var h = '<h2>Go to month</h2><div class="menu">' + opts.map(function (o) {
-    return '<button data-m="' + esc(o.value) + '" ' + (o.value === S.month ? 'style="background:var(--accent);color:#fff"' : '') + '>' + esc(o.label) + (o.value === S.boot.currentMonth ? '<span class="chip good now">now</span>' : '') + '</button>';
-  }).join('') + '</div>';
-  openSheet(h, function (root) {
-    $$('[data-m]', root).forEach(function (b) { b.addEventListener('click', function () { S.month = b.getAttribute('data-m'); closeSheet(); load(); }); });
-    var cur = $('[data-m="' + S.month + '"]', root); if (cur) cur.scrollIntoView({ block: 'center' });
-  });
+function monthPicker() { pickMonth(S.month, function (m) { S.month = m; load(); }); }
+/** Year stepper plus a 4×3 grid of months. Used by This month and Calendar. */
+function pickMonth(selected, onPick) {
+  var year = mp(selected).y, cur = S.boot.currentMonth;
+  function draw(root) {
+    var h = '<div class="ypick"><button class="ctl sm" data-y="-1" aria-label="Previous year">' + I.left + '</button><div class="yr">' + year + '</div><button class="ctl sm" data-y="1" aria-label="Next year">' + I.right + '</button></div><div class="mgrid">';
+    for (var i = 1; i <= 12; i++) {
+      var m = year + '-' + (i < 10 ? '0' : '') + i;
+      h += '<button data-m="' + m + '" class="' + (m === selected ? 'on' : '') + (m === cur ? ' now' : '') + '">' + MONTHS[i - 1] + (m === cur ? '<i></i>' : '') + '</button>';
+    }
+    h += '</div>' + (year !== mp(cur).y ? '<button class="btn secondary block" data-y="0" style="margin-top:10px">Back to ' + mp(cur).y + '</button>' : '');
+    $('.pickbody', root).innerHTML = h;
+    $$('[data-y]', root).forEach(function (b) { b.addEventListener('click', function () { var d = Number(b.getAttribute('data-y')); year = d === 0 ? mp(cur).y : year + d; draw(root); }); });
+    $$('[data-m]', root).forEach(function (b) { b.addEventListener('click', function () { var m = b.getAttribute('data-m'); closeSheet(); onPick(m); }); });
+  }
+  openSheet('<h2>Go to month</h2><div class="pickbody"></div>', draw);
 }
 
 /* ------------------------------------------------------------------ this month */
@@ -1435,12 +1452,7 @@ function renderCalendar() {
   $$('[data-pay]', v).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); togglePaid(b.getAttribute('data-pay')); }); });
   $$('[data-menu]', v).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); itemMenu(findItem(b.getAttribute('data-menu'))); }); });
 }
-function calPicker() {
-  var opts = monthOptions(S.calMonth);
-  openSheet('<h2>Go to month</h2><div class="menu">' + opts.map(function (o) { return '<button data-m="' + esc(o.value) + '" ' + (o.value === S.calMonth ? 'style="background:var(--accent);color:#fff"' : '') + '>' + esc(o.label) + (o.value === S.boot.currentMonth ? '<span class="chip good now">now</span>' : '') + '</button>'; }).join('') + '</div>', function (root) {
-    $$('[data-m]', root).forEach(function (b) { b.addEventListener('click', function () { S.calMonth = b.getAttribute('data-m'); S.calDay = null; closeSheet(); load(); }); });
-  });
-}
+function calPicker() { pickMonth(S.calMonth, function (m) { S.calMonth = m; S.calDay = null; load(); }); }
 
 /* ------------------------------------------------------------------ plan */
 function nextDueMonths(t, from, count) {
