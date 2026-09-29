@@ -217,6 +217,26 @@ assert.strictEqual(g.addCategory('Health').categories.filter(function (c) { retu
 assert.throws(function () { g.addCategory('Income'); }, /reserved/);
 console.log('add category ok');
 
+// Balance log: every update is kept with its date; Months keeps the latest.
+var logBefore = g.__gasShim.book.sheets.Balances.rows.length;
+g.setBalance(cur, 4100);
+g.setBalance(cur, 3900);
+var balRows = g.__gasShim.book.sheets.Balances.rows;
+assert.strictEqual(balRows.length, logBefore + 2, 'each update appends a row');
+assert.strictEqual(g.getMonth(cur).balance, 3900);
+g.setBalance(cur, 9999, cur + '-01');
+assert.strictEqual(g.getMonth(cur).balance, 3900, 'an older-dated entry does not override the latest');
+var hist2 = g.getHistory();
+assert.ok(hist2.points.length >= 3);
+for (var hi = 1; hi < hist2.points.length; hi++) assert.ok(hist2.points[hi - 1].date <= hist2.points[hi].date, 'points sorted by date');
+assert.strictEqual(hist2.points[hist2.points.length - 1].balance, 3900);
+var curMonth = hist2.months.filter(function (x) { return x.month === cur; })[0];
+var mm = g.getMonth(cur);
+assert.strictEqual(curMonth.planned, mm.totals.pending + mm.totals.paid);
+assert.strictEqual(curMonth.paid, mm.totals.paid);
+assert.ok(hist2.months.every(function (x) { return x.month <= cur; }), 'no future months');
+console.log('balance log ok');
+
 // Custom categories via Settings.
 g.setSetting_('categories', 'Home, Utilities, Fun');
 assert.strictEqual(g.getBootstrap().categories.join(','), 'Home,Utilities,Fun');
@@ -233,11 +253,21 @@ assert.strictEqual(ish.rows[0][10], 'due_on'); assert.strictEqual(rsh.rows[0][8]
 assert.strictEqual(rsh.rows[0][9], 'kind'); assert.strictEqual(rsh.rows[0][10], 'trial_ends');
 console.log('column migration ok');
 
+// A sheet from before the log existed gets it created and seeded from Months.
+delete g.__gasShim.book.sheets.Balances;
+g.getBootstrap();
+var seeded = g.__gasShim.book.sheets.Balances.rows;
+assert.ok(seeded.length >= 2, 'log created with header plus backfilled rows');
+assert.strictEqual(seeded[0].join(','), 'date,balance,month,logged_at');
+console.log('balance backfill ok');
+
 // Viewer cannot write, can read.
 g.__gasShim.setViewer('someone@else.com');
 assert.strictEqual(g.getBootstrap().isOwner, false);
 assert.throws(function () { g.markPaid(elec.id, false); }, /View only/);
 assert.throws(function () { g.completeSetup({ currency: 'EUR' }); }, /View only/);
+assert.throws(function () { g.setBalance(cur, 1); }, /View only/);
+assert.ok(g.getHistory().points.length > 0, 'viewer can read history');
 assert.ok(g.getMonth(cur).items.length > 0);
 console.log('viewer guard ok');
 

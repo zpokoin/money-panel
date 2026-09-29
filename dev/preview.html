@@ -42,8 +42,19 @@
     var m = getMonth(cur);
     markPaid(m.items.filter(function (i) { return i.name === 'Phone'; })[0].id, true);
     // Some history so the pace comparison and the three-month card have real data behind them.
-    setBalance(monthAdd_(cur, -2), 4800); getMonth(monthAdd_(cur, -2));
-    setBalance(monthAdd_(cur, -1), 4600); getMonth(monthAdd_(cur, -1));
+    // A few months of dated balance updates so the Over time chart has a line to draw.
+    var m2 = monthAdd_(cur, -2), m1 = monthAdd_(cur, -1);
+    [[m2, '01', 6100], [m2, '09', 5400], [m2, '18', 5050], [m2, '27', 4800],
+     [m1, '02', 7300], [m1, '11', 6200], [m1, '19', 5100], [m1, '28', 4600]].forEach(function (b) {
+      setBalance(b[0], b[2], b[0] + '-' + b[1]);
+    });
+    getMonth(m2); getMonth(m1);
+    // earlier months' bills, some paid, so the Spending view has history
+    [[m2, 'Rent', 'Rent', 1500], [m2, 'Electricity', 'Bills', 140], [m2, 'Groceries top-up', 'Other', 310],
+     [m1, 'Electricity', 'Bills', 125], [m1, 'Car repair', 'Other', 620]].forEach(function (x) {
+      var it = addItem({ month: x[0], name: x[1], category: x[2], amount: x[3] });
+      markPaid(it.id, true);
+    });
     if (params0.get('stale')) { var mrow = __gasShim.book.sheets.Months.rows.filter(function (r) { return r[0] === cur; })[0]; mrow[3] = monthAdd_(cur, -1) + '-28'; }
   }
   var params = new URLSearchParams(location.search);

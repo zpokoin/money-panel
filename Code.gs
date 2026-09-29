@@ -6,6 +6,7 @@
  *   Months     one row per month: salary, typed-in bank balance, amount set aside
  *   Recurring  templates that are expanded into Items the first time a month is opened
  *   Settings   key/value: currency, categories
+ *   Balances   one row per bank-balance update (a dated log; Months keeps the latest per month)
  *
  * The tabs are created automatically the first time the owner opens the web app.
  * Any other tabs in the spreadsheet are never touched.
@@ -15,6 +16,7 @@ var SHEET_ITEMS = 'Items';
 var SHEET_MONTHS = 'Months';
 var SHEET_RECURRING = 'Recurring';
 var SHEET_SETTINGS = 'Settings';
+var SHEET_BALANCES = 'Balances';
 
 // Leave blank to treat the script owner (the account the web app executes as) as the editor.
 // Set it to force a specific account, e.g. 'me@gmail.com'.
@@ -29,6 +31,7 @@ var ITEM_COLS = ['id', 'month', 'name', 'category', 'amount', 'status', 'paid_on
 var MONTH_COLS = ['month', 'salary', 'balance', 'balance_updated', 'expanded', 'reserve', 'left_snapshot'];
 var REC_COLS = ['id', 'name', 'category', 'amount', 'every_n_months', 'start_month', 'end_month', 'active', 'due_day', 'kind', 'trial_ends'];
 var SETTINGS_COLS = ['key', 'value'];
+var BAL_COLS = ['date', 'balance', 'month', 'logged_at'];
 
 // ---------------------------------------------------------------------------
 // Web app entry
@@ -86,6 +89,7 @@ function completeSetup(input) {
     if (salary > 0) m.salary = salary;
     if (input.balance !== '' && input.balance !== undefined && input.balance !== null) {
       m.balance = num_(input.balance); m.balance_updated = todayStr();
+      logBalance_(todayStr(), m.balance, month);
     }
     writeRow_(SHEET_MONTHS, MONTH_COLS, m);
     return getBootstrap();
@@ -109,6 +113,23 @@ function migrateColumns_() {
   ensureColumns_(SHEET_ITEMS, ITEM_COLS);
   ensureColumns_(SHEET_MONTHS, MONTH_COLS);
   ensureColumns_(SHEET_RECURRING, REC_COLS);
+  if (!ss_().getSheetByName(SHEET_BALANCES)) {
+    ensureSheet_(SHEET_BALANCES, BAL_COLS, { date: '@', month: '@', logged_at: '@' });
+    // Seed the log with the balances already on record, one per month.
+    readRows_(SHEET_MONTHS, MONTH_COLS).forEach(function (m) {
+      if (m.balance === '') return;
+      var d = m.balance_updated || (m.month + '-01');
+      appendRow_(SHEET_BALANCES, BAL_COLS, { date: d, balance: Number(m.balance), month: m.month, logged_at: '' });
+    });
+  }
+}
+
+/** Append one dated balance to the log. */
+function logBalance_(date, balance, month) {
+  appendRow_(SHEET_BALANCES, BAL_COLS, {
+    date: date, balance: balance, month: month,
+    logged_at: Utilities.formatDate(new Date(), tz_(), "yyyy-MM-dd'T'HH:mm")
+  });
 }
 
 /** Add any header columns that are missing (columns are only ever appended at the end). */
@@ -422,16 +443,60 @@ function deleteItem(id) {
   });
 }
 
-function setBalance(month, balance) {
+/**
+ * Record the bank balance. Every call is kept in the Balances log; the Months row holds the
+ * latest one for that month. `on` (YYYY-MM-DD, optional) records a balance for an earlier date.
+ */
+function setBalance(month, balance, on) {
   requireOwner_();
   month = normMonth_(month);
+  var date = on ? normDate_(on) : todayStr();
   return withLock_(function () {
     var m = ensureMonthRow_(month);
     m.balance = balance === '' || balance === null ? '' : num_(balance);
-    m.balance_updated = todayStr();
+    if (m.balance !== '') {
+      logBalance_(date, m.balance, month);
+      if (!m.balance_updated || date >= m.balance_updated) m.balance_updated = date;
+      else m.balance = latestLoggedFor_(month);   // an older entry never overrides a newer one
+    } else {
+      m.balance_updated = todayStr();
+    }
     writeRow_(SHEET_MONTHS, MONTH_COLS, m);
     return getMonth(month);
   });
+}
+
+function latestLoggedFor_(month) {
+  var best = null;
+  readRows_(SHEET_BALANCES, BAL_COLS).forEach(function (r) {
+    if (r.month === month && (!best || r.date > best.date || (r.date === best.date && r._row > best._row))) best = r;
+  });
+  return best ? Number(best.balance) : '';
+}
+
+/**
+ * History for the "Over time" card: every logged balance (oldest first) and, per month on
+ * record, what was planned and what was paid.
+ */
+function getHistory() {
+  requireReady_();
+  var points = readRows_(SHEET_BALANCES, BAL_COLS)
+    .filter(function (r) { return r.date && r.balance !== ''; })
+    .map(function (r) { return { date: r.date, balance: Number(r.balance), month: r.month, row: r._row }; })
+    .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.row - b.row; })
+    .map(function (p) { return { date: p.date, balance: p.balance, month: p.month }; });
+  var cur = todayStr().slice(0, 7);
+  var byMonth = {};
+  readRows_(SHEET_ITEMS, ITEM_COLS).forEach(function (it) {
+    if (it.month > cur) return;
+    var b = byMonth[it.month] = byMonth[it.month] || { month: it.month, planned: 0, paid: 0 };
+    b.planned += it.amount;
+    if (it.status === 'paid') b.paid += it.amount;
+  });
+  var salaries = {};
+  readRows_(SHEET_MONTHS, MONTH_COLS).forEach(function (m) { if (m.salary !== '') salaries[m.month] = Number(m.salary); });
+  var months = Object.keys(byMonth).sort().map(function (k) { var b = byMonth[k]; b.salary = salaries[k] || 0; return b; });
+  return { points: points, months: months, today: todayStr() };
 }
 
 function setSalary(month, salary) {
@@ -729,7 +794,7 @@ function sheet_(name) {
   return sh;
 }
 
-function requireReady_() { sheet_(SHEET_ITEMS); sheet_(SHEET_MONTHS); sheet_(SHEET_RECURRING); sheet_(SHEET_SETTINGS); }
+function requireReady_() { sheet_(SHEET_ITEMS); sheet_(SHEET_MONTHS); sheet_(SHEET_RECURRING); sheet_(SHEET_SETTINGS); if (!ss_().getSheetByName(SHEET_BALANCES)) migrateColumns_(); }
 
 function readRows_(name, cols) {
   var sh = sheet_(name);
@@ -759,6 +824,7 @@ function clean_(col, v) {
     return v instanceof Date ? fmtDate_(v) : String(v).trim();
   }
   if (col === 'due_day' || col === 'left_snapshot') return v === '' ? '' : num_(v);
+  if (col === 'date' || col === 'logged_at') return v instanceof Date ? fmtDate_(v) : String(v).trim();
   return String(v).trim();
 }
 

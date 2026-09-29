@@ -42,6 +42,11 @@ get ticked there; Plan lists them sorted by next renewal, with a free-trial date
 delays the first charge. **Categories** can be added from any form's category picker, with a
 colour, and are stored in the Settings tab like everything else.
 
+**Over time** keeps every bank-balance update with its date and draws them as a line, so you
+can see how the balance moves across the month and from one payday to the next. Its second
+view, **Spending**, shows each month's bills as a bar with the paid part filled in. You can
+log a balance for an earlier date to fill in history.
+
 Balance, salary and reserve are one tap each. A single eye button hides every amount while
 names, dates, overdue flags and ticking keep working. On a wide screen the tabs move into a
 left rail and This month gains a second column: balance freshness, where the month goes,
@@ -81,7 +86,9 @@ If you prefer `clasp`: `npx @google/clasp login`, copy `.clasp.json.example` to
 ## How it thinks
 
 - **Balance is typed in, not synced.** You enter what the bank shows, when you check it.
-  Twice a month is plenty: after payday and once mid-month.
+  Twice a month is plenty: after payday and once mid-month. Every update is kept in the
+  `Balances` tab; the month's safe-to-spend uses the most recent one. When a sheet from an
+  earlier version is opened, the tab is created and seeded with the balances already saved.
 - **A month is filled in the first time you open it.** Recurring templates become pending
   rows for that month. From then on the rows are independent of the template.
 - **Paid rows are history.** Nothing deletes them automatically.
@@ -110,6 +117,7 @@ If you prefer `clasp`: `npx @google/clasp login`, copy `.clasp.json.example` to
 | `Months` | month, salary, balance, balance_updated, expanded, reserve, left_snapshot |
 | `Recurring` | id, name, category, amount, every_n_months, start_month, end_month, active, due_day, kind, trial_ends |
 | `Settings` | key, value (`currency`, `categories`, `category_colors`, `reserve_monthly`) |
+| `Balances` | date, balance, month, logged_at — one row per balance update |
 
 Columns are only ever appended. A sheet from an earlier version gets the new headers added
 automatically the next time the owner opens the app, and every new column is optional.

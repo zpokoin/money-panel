@@ -361,6 +361,22 @@ body.selecting .tabbar,body.selecting .fab{display:none!important}
 .toast button{color:#86EFAC;font-weight:700;min-height:32px}
 .setup{padding:24px;text-align:center}
 
+/* ---- over time ---- */
+.hist{padding:18px}
+.hist-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.hist-h b{font-size:15px;font-weight:700}
+.hist .seg{margin:0}
+.hist .seg button{padding:5px 10px;min-height:30px;font-size:12.5px}
+.hist-v{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.hist-v .cur{font-size:12px}
+.hist-s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.hist svg{display:block;width:100%;height:auto;margin-top:10px}
+.hist .empty{padding:18px 4px 6px}
+.hist-log{margin-top:12px;border-top:1px solid var(--hairline);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.hist-log div{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.hist-log div b{color:var(--text);font-weight:600}
+.hist-log button{align-self:flex-start;font-size:12.5px;font-weight:600;color:var(--info);min-height:32px}
+
 /* ---- month picker ---- */
 .ypick{display:flex;align-items:center;gap:8px;margin:4px 0 12px}
 .ypick .yr{flex:1;text-align:center;font-size:17px;font-weight:700;letter-spacing:-.02em}
@@ -546,7 +562,7 @@ var TABS = [
 var TAB_ALIAS = { forecast: 'ahead', planned: 'ahead', recurring: 'plan' };
 var S = {
   boot: null, tab: 'month', month: null, fcCount: 6, calMonth: null, calDay: null,
-  data: { month: null, forecast: null, plan: null, calendar: null },
+  data: { month: null, forecast: null, plan: null, calendar: null, history: null }, histView: 'balance',
   mask: { all: false },
   select: { on: false, ids: {} },
   filterCat: null, paidOpen: false, fcOpen: {}, busy: 0, lastRead: null
@@ -659,7 +675,7 @@ function welcome() {
     noCancel: true,
     onSubmit: function (v) {
       return api('completeSetup', v).then(function (b) {
-        S.data = { month: null, forecast: null, plan: null, calendar: null };
+        S.data = { month: null, forecast: null, plan: null, calendar: null, history: null };
         applyBoot(b);
         toast('Ready. Add your bills in the Plan tab.');
       });
@@ -703,6 +719,7 @@ function load() {
       S.data.month = d; render();
       if (isDesktop() && !S.data.forecast) loadForecastForMonth();
       if (isDesktop() && !S.data.plan) loadPlanForMonth();
+      if (!S.data.history) loadHistory();
     }).catch(showError);
   }
   if (S.tab === 'ahead') {
@@ -716,13 +733,16 @@ function load() {
   if (!S.data.plan) v.innerHTML = skeleton();
   return api('getPlan').then(function (d) { S.data.plan = d; render(); }).catch(showError);
 }
+function loadHistory() {
+  api('getHistory').then(function (d) { S.data.history = d; if (S.tab === 'month' && !S.select.on) renderMonth(); }).catch(function () {});
+}
 function loadPlanForMonth() {
   api('getPlan').then(function (d) { S.data.plan = d; if (S.tab === 'month') render(); }).catch(function () {});
 }
 function loadForecastForMonth() {
   api('getForecast', S.boot.currentMonth, 6).then(function (d) { S.data.forecast = d; if (S.tab === 'month') render(); }).catch(function () {});
 }
-function invalidate() { S.data.forecast = null; S.data.plan = null; S.data.calendar = null; }
+function invalidate() { S.data.forecast = null; S.data.plan = null; S.data.calendar = null; S.data.history = null; }
 function skeleton() { return '<div class="hdr"><div><div class="hdr-title" style="opacity:.3">&nbsp;</div></div></div><div class="card" style="height:150px;opacity:.5"></div><div class="card" style="height:220px;opacity:.35"></div>'; }
 function render() {
   document.body.classList.toggle('selecting', S.select.on);
@@ -875,6 +895,7 @@ function renderMonth() {
     h += isDesktop() ? '</section>' : '';
     h += '</div>';
   }
+  if (!S.select.on) h += historyCard('ph');
   h += '</div>';   // left col
 
   // Desktop right column
@@ -961,6 +982,82 @@ function billRow(i, today) {
     '<div class="bill-due dk ' + meta.cls + '">' + esc(meta.short || meta.text) + '</div>' +
     '<div class="bill-amt">' + money(i.amount, 'bare') + '</div>' + trailing + '</div>';
 }
+/* ------------------------------------------------------------------ over time */
+function histWidth(where) {
+  var v = $('#view'); var cw = v ? v.clientWidth : 360;
+  if (where === 'dk') return Math.max(240, ((cw - 48) - 20) / 2.55 - 38);
+  return Math.max(240, cw - 32 - 38);
+}
+function historyCard(where) {
+  var hs = S.data.history;
+  var seg = '<div class="seg"><button data-hv="balance" class="' + (S.histView === 'balance' ? 'on' : '') + '">Balance</button><button data-hv="spending" class="' + (S.histView === 'spending' ? 'on' : '') + '">Spending</button></div>';
+  var h = '<section class="card hist ' + where + '"><div class="hist-h"><b>Over time</b>' + seg + '</div>';
+  if (!hs) return h + '<div style="height:120px;opacity:.4;background:var(--bg);border-radius:12px"></div></section>';
+  var W = histWidth(where);
+  h += S.histView === 'balance' ? balanceView(hs, W) : spendingView(hs, W);
+  return h + '</section>';
+}
+function balanceView(hs, W) {
+  var pts = hs.points;
+  if (!pts.length) return '<div class="empty"><strong>No balances yet</strong>Each time you update your bank balance it is kept here with its date.</div>';
+  var last = pts[pts.length - 1], first = pts[0];
+  var diff = last.balance - first.balance;
+  var h = '<div class="hist-v">' + money(last.balance) + '</div><div class="hist-s">' + (pts.length === 1 ? 'on ' + dateLabel(last.date) + ' · update it again to start a line' : signed(diff) + ' since ' + dateLabel(first.date) + ' · ' + pluralize(pts.length, 'update')) + '</div>';
+  if (pts.length >= 2) h += balanceChart(pts, W);
+  var recent = pts.slice(-4).reverse();
+  h += '<div class="hist-log">' + recent.map(function (p) { return '<div><span>' + esc(dateLabel(p.date)) + (p.date.slice(0, 4) !== S.boot.today.slice(0, 4) ? ' ' + p.date.slice(0, 4) : '') + '</span><b>' + money(p.balance, 'bare') + '</b></div>'; }).join('') +
+       (owner() ? '<button data-act="logbal">Log a balance</button>' : '') + '</div>';
+  return h;
+}
+function balanceChart(pts, W) {
+  var H = 120, L = 6, R = 6, T = 10, B = 22, base = H - B;
+  var t0 = toDate(pts[0].date).getTime(), t1 = toDate(pts[pts.length - 1].date).getTime(), span = Math.max(1, t1 - t0);
+  var vals = pts.map(function (p) { return p.balance; });
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  if (hi === lo) { hi += 1; lo -= 1; }
+  var pad = (hi - lo) * 0.12; lo -= pad; hi += pad;
+  function x(p) { return L + (W - L - R) * (toDate(p.date).getTime() - t0) / span; }
+  function y(v) { return T + (base - T) * (1 - (v - lo) / (hi - lo)); }
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bank balance over time">';
+  s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + base + '" y2="' + base + '" stroke="#EAECEF"/>';
+  if (masked()) {
+    s += '<path d="M' + L + ' ' + (base - 30) + ' L' + (W - R) + ' ' + (base - 30) + '" stroke="#D0D5DD" stroke-width="2.5" stroke-dasharray="4 5"/>';
+  } else {
+    var path = pts.map(function (p, i) { return (i ? 'L' : 'M') + x(p).toFixed(1) + ' ' + y(p.balance).toFixed(1); }).join(' ');
+    var area = path + ' L' + x(pts[pts.length - 1]).toFixed(1) + ' ' + base + ' L' + x(pts[0]).toFixed(1) + ' ' + base + ' Z';
+    s += '<path d="' + area + '" fill="#EEF2FF"/><path d="' + path + '" fill="none" stroke="#4338CA" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    if (pts.length <= 40) pts.forEach(function (p, i) { s += '<circle cx="' + x(p).toFixed(1) + '" cy="' + y(p.balance).toFixed(1) + '" r="' + (i === pts.length - 1 ? 4 : 2.5) + '" fill="' + (i === pts.length - 1 ? '#4338CA' : '#fff') + '" stroke="#4338CA" stroke-width="' + (i === pts.length - 1 ? 0 : 1.5) + '"><title>' + esc(dateLabel(p.date)) + ': ' + esc(bare(p.balance)) + '</title></circle>'; });
+  }
+  // first / middle / last date labels
+  var labels = [pts[0], pts[pts.length - 1]];
+  labels.forEach(function (p, i) { s += '<text x="' + (i ? W - R : L) + '" y="' + (H - 6) + '" text-anchor="' + (i ? 'end' : 'start') + '" font-size="11" fill="#9CA3AF">' + esc(dateLabel(p.date)) + '</text>'; });
+  return s + '</svg>';
+}
+function spendingView(hs, W) {
+  var ms = hs.months.slice(-6);
+  if (!ms.length) return '<div class="empty"><strong>Nothing yet</strong>Each month you open adds a bar here.</div>';
+  var cur = ms[ms.length - 1];
+  var avg = ms.length > 1 ? ms.slice(0, -1).reduce(function (a, m) { return a + m.planned; }, 0) / (ms.length - 1) : null;
+  var h = '<div class="hist-v">' + money(cur.planned) + '</div><div class="hist-s">' + esc(monthLong(cur.month)) + ' bills · ' + bare(cur.paid) + ' paid' + (avg !== null ? ' · ' + bare(Math.round(avg)) + ' average before' : '') + '</div>';
+  var H = 130, B = 22, T = 16, base = H - B, n = ms.length;
+  var slot = W / n, bw = Math.min(44, slot * 0.6);
+  var mx = Math.max.apply(null, ms.map(function (m) { return m.planned; })) || 1;
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bills by month">';
+  ms.forEach(function (m, i) {
+    var cx = slot * i + slot / 2, x0 = cx - bw / 2;
+    var hp = masked() ? 28 : Math.max(2, (m.planned / mx) * (base - T));
+    var hpaid = masked() ? 0 : (m.planned ? (m.paid / m.planned) * hp : 0);
+    var isCur = i === n - 1;
+    s += '<rect x="' + x0.toFixed(1) + '" y="' + (base - hp).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hp.toFixed(1) + '" rx="5" fill="' + (masked() ? 'none' : isCur ? '#C7D2FE' : '#E5E7EB') + '"' + (masked() ? ' stroke="#D0D5DD" stroke-dasharray="3 3"' : '') + '><title>' + esc(monthLabel(m.month)) + ': ' + esc(bare(m.planned)) + ' planned, ' + esc(bare(m.paid)) + ' paid</title></rect>';
+    if (hpaid > 0) s += '<rect x="' + x0.toFixed(1) + '" y="' + (base - hpaid).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hpaid.toFixed(1) + '" rx="5" fill="' + (isCur ? '#4338CA' : '#9CA3AF') + '"/>';
+    if (!masked()) s += '<text x="' + cx.toFixed(1) + '" y="' + (base - hp - 4).toFixed(1) + '" text-anchor="middle" font-size="10.5" fill="#6B7280">' + esc(shortNum(m.planned)) + '</text>';
+    s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="11" fill="' + (isCur ? '#111827' : '#9CA3AF') + '" font-weight="' + (isCur ? 700 : 500) + '">' + esc(monthShort(m.month)) + '</text>';
+  });
+  s += '<line x1="0" x2="' + W + '" y1="' + base + '" y2="' + base + '" stroke="#EAECEF"/></svg>';
+  return h + s + '<div class="callegend" style="justify-content:flex-start;margin-top:6px"><span><i style="background:#4338CA"></i>paid</span><span><i style="background:#C7D2FE"></i>planned</span></div>';
+}
+function shortNum(n) { n = Math.round(n); return n >= 10000 ? Math.round(n / 1000) + 'k' : n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); }
+
 function renderRightCol(d, pending, paid, total, today) {
   var h = '';
   var sd = staleDays(d);
@@ -973,6 +1070,7 @@ function renderRightCol(d, pending, paid, total, today) {
     krow('balance', 'Bank balance', d.balance === null ? '—' : money(d.balance, 'bare'), stale + (owner() ? '<span class="upd">' + (d.balance === null ? 'Enter' : 'Update') + '</span>' : '')) +
     krow('salary', 'Salary this month', money(d.salary, 'bare'), owner() ? '<span class="edt">Edit</span>' : '') +
     krow('reserve', 'Reserve kept aside', money(d.reserveTotal, 'bare'), owner() ? '<span class="edt">Edit</span>' : '') + '</section>';
+  h += historyCard('dk');
   // Where it goes
   var bc = byCategory(d.items);
   if (d.items.length) {
@@ -1026,6 +1124,8 @@ function bindMonth() {
   var add = $('[data-act="add"]', v); if (add) add.addEventListener('click', function () { openAddItem({ month: S.month }); });
   var ah = $('[data-act="ahead"]', v); if (ah) ah.addEventListener('click', function () { show('ahead'); });
   var pl = $('[data-act="plan"]', v); if (pl) pl.addEventListener('click', function () { show('plan'); });
+  $$('[data-hv]', v).forEach(function (b) { b.addEventListener('click', function () { S.histView = b.getAttribute('data-hv'); renderMonth(); }); });
+  $$('[data-act="logbal"]', v).forEach(function (b) { b.addEventListener('click', editBalance); });
   $$('[data-chip]', v).forEach(function (c) { c.addEventListener('click', function () { var it = findItem(c.getAttribute('data-chip')); if (it && owner()) itemMenu(it); }); });
   // rows: select-mode toggle + long-press to enter select mode
   $$('.bill', v).forEach(function (row) {
@@ -1073,8 +1173,9 @@ function togglePaid(id) {
   it.status = paid ? 'paid' : 'pending'; it.paid_on = paid ? S.boot.today : '';
   recalcMonth(); render();
   api('markPaid', id, paid).then(function () {
-    S.data.forecast = null; S.data.plan = null;
+    S.data.forecast = null; S.data.plan = null; S.data.history = null;
     if (S.tab === 'calendar') S.data.month = null; else S.data.calendar = null;
+    if (S.tab === 'month') loadHistory();
     toast((paid ? 'Marked paid: ' : 'Back to pending: ') + it.name, { label: 'Undo', fn: function () { togglePaid(id); } });
   }).catch(function (e) { showError(e); load(); });
 }
@@ -1231,12 +1332,26 @@ function stopTemplate(templateId, name, lastMonth) {
 }
 function editBalance() {
   var d = S.data.month;
+  var isCur = d.month === S.boot.currentMonth;
+  var defDate = isCur ? S.boot.today : d.month + '-' + ('0' + lastDay(d.month)).slice(-2);
+  var recent = (S.data.history ? S.data.history.points : []).slice(-3).reverse();
   formSheet({
     title: 'Bank balance',
-    hint: 'What your account shows right now. Safe to spend is this minus unpaid bills minus the reserve.',
-    fields: [{ name: 'balance', label: amtLabel('Balance'), type: 'number', value: d.balance === null ? '' : d.balance, autofocus: true, required: true }],
+    hint: 'What your account shows. Every update is kept with its date, so the Over time chart can show how it moves. Safe to spend uses the latest one.' +
+          (recent.length ? ' Recent: ' + recent.map(function (p) { return dateLabel(p.date) + ' ' + plain(p.balance); }).join(' · ') + '.' : ''),
+    fields: [
+      { name: 'balance', label: amtLabel('Balance'), type: 'number', value: d.balance === null ? '' : d.balance, autofocus: true, required: true },
+      { name: 'on', label: 'As of', type: 'date', value: defDate }
+    ],
     submit: 'Save',
-    onSubmit: function (v) { return api('setBalance', d.month, v.balance).then(function (nd) { S.data.month = nd; invalidate(); render(); toast('Balance updated'); }); }
+    onSubmit: function (v) {
+      var on = v.on || defDate;
+      var month = on.slice(0, 7);
+      return api('setBalance', month, v.balance, on).then(function (nd) {
+        if (month === d.month) S.data.month = nd;
+        invalidate(); load(); toast('Balance saved for ' + dateLabel(on));
+      });
+    }
   });
 }
 function editSalary() {
